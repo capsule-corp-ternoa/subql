@@ -6,7 +6,7 @@ ARG RELEASE_VERSION
 RUN apk add --no-cache tini
 ENTRYPOINT ["/sbin/tini", "--", "subql-query"]
 
-RUN npm i -g @subql/query@${RELEASE_VERSION}
-WORKDIR /workdir
+COPY . .
+RUN npm install && npm run build && npm link
 
 CMD ["-f","/app"]

@@ -1,18 +1,20 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
     "target": "es2017",
     "sourceMap": true,
-    "tsBuildInfoFile": "dist/.tsbuildinfo",
     "rootDir": "src",
     "outDir": "./dist",
+    "allowSyntheticDefaultImports": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
     "lib": [
       "dom"
     ]
   },
-  "references": [
-    {"path": "../common"},
-    {"path": "../types"}
-  ],
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*"
+  ]
 }

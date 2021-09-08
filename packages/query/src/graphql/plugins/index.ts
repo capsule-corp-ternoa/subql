@@ -44,6 +44,7 @@ import PgManyToManyPlugin from '@graphile-contrib/pg-many-to-many';
 import ConnectionFilterPlugin from 'postgraphile-plugin-connection-filter';
 import {argv} from '../../yargs';
 import {GetMetadataPlugin} from './GetMetadataPlugin';
+import { PgDistinct } from './PgDistinct';
 
 // custom plugins
 import PgConnectionArgFirstLastBeforeAfter from './PgConnectionArgFirstLastBeforeAfter';
@@ -100,6 +101,7 @@ export const plugins = [
   PgSimplifyInflectorPlugin,
   PgManyToManyPlugin,
   ConnectionFilterPlugin,
+  PgDistinct,
 ];
 
 if (argv(`indexer`)) {
