@@ -1,5 +1,5 @@
 {
-  "name": "subql-mono",
+  "name": "subql-ternoa",
   "private": true,
   "workspaces": [
     "packages/*"
