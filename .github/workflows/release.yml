@@ -66,35 +66,35 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish Cli
-        if: steps.changed-cli.outputs.changed == 'true'
+        if: steps.changed-cli.outputs.changed == 'false'
         working-directory: packages/cli
         run: echo "Changes exist in cli" && yarn npm publish --access public
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish Types
-        if: steps.changed-types.outputs.changed == 'true'
+        if: steps.changed-types.outputs.changed == 'false'
         working-directory: packages/types
         run: echo "Changes exist in types" && yarn npm publish --access public
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish Node
-        if: steps.changed-node.outputs.changed == 'true'
+        if: steps.changed-node.outputs.changed == 'false'
         working-directory: packages/node
         run: echo "Changes exist in node" && yarn npm publish --access public
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish Query
-        if: steps.changed-query.outputs.changed == 'true'
+        if: steps.changed-query.outputs.changed == 'false'
         working-directory: packages/query
         run: echo "Changes exist in query" && yarn npm publish --access public
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish Validator
-        if: steps.changed-validator.outputs.changed == 'true'
+        if: steps.changed-validator.outputs.changed == 'false'
         working-directory: packages/validator
         run: echo "Changes exist in validator" && yarn npm publish --access public
         env:
