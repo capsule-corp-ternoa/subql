@@ -59,7 +59,7 @@ jobs:
       #Publish to npm
 
       - name: Publish Common
-        if: steps.changed-common.outputs.changed == 'true'
+        if: steps.changed-common.outputs.changed == 'false'
         working-directory: packages/common
         run: echo "Changes exist in common" && yarn npm publish --access public
         env:
