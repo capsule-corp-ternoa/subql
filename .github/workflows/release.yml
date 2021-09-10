@@ -3,14 +3,12 @@ on:
   push:
     branches:
       - main-ci
-#    paths-ignore:
-#      - '.github/workflows/**'
 
 jobs: 
   Build-Publish:
     name: Build-Publish
 #    needs: pre-ci
-    if: "!startsWith(github.event.head_commit.message, '[SKIP CI]') && startsWith(github.event.head_commit.message, '[release]') && github.repository == 'capsule-corp-ternoa/subql'"
+#    if: "!startsWith(github.event.head_commit.message, '[SKIP CI]') && startsWith(github.event.head_commit.message, '[release]') && github.repository == 'capsule-corp-ternoa/subql'"
     runs-on: ubuntu-latest
     steps:
       #Check out
