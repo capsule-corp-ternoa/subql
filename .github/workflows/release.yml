@@ -7,7 +7,7 @@ on:
 #      - '.github/workflows/**'
   workflow_dispatch:
 
-jobs:
+jobs: 
 #  pre-ci:
 #    runs-on: ubuntu-latest
 #    timeout-minutes: 1
