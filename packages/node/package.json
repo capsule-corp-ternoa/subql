@@ -25,7 +25,7 @@
     "@nestjs/platform-express": "^7.6.1",
     "@nestjs/schedule": "^0.4.2",
     "@polkadot/api": "^5.7.1",
-    "@subql/common": "file:../common",
+    "@subql/common": "0.10.1",
     "@subql/types": "file:../types",
     "@subql/x-vm2": "latest",
     "@willsoto/nestjs-prometheus": "^3.0.0",
