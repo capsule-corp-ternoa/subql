@@ -19,7 +19,7 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
                 sql.fragment`(
                   ${sql.fragment`(
                     SELECT DISTINCT ON (serie_id) nft_entities.* 
-                    FROM nft_entities
+                    FROM subquery_2.nft_entities
                     WHERE timestamp_burn IS NULL
                     AND serie_id <> '0'
                     ${listed.value === 1 ? sql.fragment` AND listed=1` : sql.fragment``}
@@ -32,7 +32,7 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
 
                   ${sql.fragment`(
                     SELECT nft_entities.* 
-                    FROM nft_entities
+                    FROM subquery_2.nft_entities
                     WHERE timestamp_burn IS NULL
                     AND serie_id = '0'
                     ${listed.value === 1 ? sql.fragment` AND listed=1` : sql.fragment``}
