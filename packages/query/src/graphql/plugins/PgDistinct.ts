@@ -7,7 +7,7 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
   return {
     typeDefs: gql`
         extend type Query {
-            distinctSerieNfts(listed: Int, owner: String): NftEntitiesConnection
+            distinctSerieNfts(listed: Int, owner: String, marketplaceId: String): NftEntitiesConnection
         }
     `,
     resolvers: {
@@ -15,13 +15,15 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
         distinctSerieNfts: async (_query, args, context, resolveInfo) => {
             const listed = sql.value(args.listed)
             const owner = sql.value(args.owner)
+            const marketplaceId = sql.value(args.marketplaceId)
             return resolveInfo.graphile.selectGraphQLResultFromTable(
                 sql.fragment`(
                   ${sql.fragment`(
                     SELECT DISTINCT ON (serie_id) nft_entities.* 
-                    FROM subquery_2.nft_entities
+                    FROM nft_entities
                     WHERE timestamp_burn IS NULL
                     AND serie_id <> '0'
+                    ${marketplaceId.value !== undefined ? sql.fragment` AND marketplace_id=${marketplaceId}` : sql.fragment``}
                     ${listed.value === 1 ? sql.fragment` AND listed=1` : sql.fragment``}
                     ${listed.value === 0 ? sql.fragment` AND listed=0` : sql.fragment``}
                     ${owner.value !== undefined ? sql.fragment` AND owner=${owner}` : sql.fragment``}
@@ -32,9 +34,10 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
 
                   ${sql.fragment`(
                     SELECT nft_entities.* 
-                    FROM subquery_2.nft_entities
+                    FROM nft_entities
                     WHERE timestamp_burn IS NULL
                     AND serie_id = '0'
+                    ${marketplaceId.value !== undefined ? sql.fragment` AND marketplace_id=${marketplaceId}` : sql.fragment``}
                     ${listed.value === 1 ? sql.fragment` AND listed=1` : sql.fragment``}
                     ${listed.value === 0 ? sql.fragment` AND listed=0` : sql.fragment``}
                     ${owner.value !== undefined ? sql.fragment` AND owner=${owner}` : sql.fragment``}
