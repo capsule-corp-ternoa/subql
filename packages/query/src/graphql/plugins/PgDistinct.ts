@@ -16,17 +16,17 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
             const listed = sql.value(args.listed)
             const owner = sql.value(args.owner)
             const marketplaceId = sql.value(args.marketplaceId)
-            //const { rows } = await context.pgClient.query(
+            // const { rows } = await context.pgClient.query(
             //  "select * from public.subqueries"
-            //);
-            //const tableName = sql.value(rows[0].db_schema)
-            //console.log("tableName", tableName)
-            //console.log("tableName value", tableName.value)
+            // );
+            // const tableName = sql.value(rows[0].db_schema)
+            // console.log("tableName", tableName)
+            // console.log("tableName value", tableName.value)
             return resolveInfo.graphile.selectGraphQLResultFromTable(
                 sql.fragment`(
                   ${sql.fragment`(
                     SELECT DISTINCT ON (serie_id) nft_entities.* 
-                    FROM nft_entities
+                    FROM subquery_2.nft_entities
                     WHERE timestamp_burn IS NULL
                     AND serie_id <> '0'
                     ${marketplaceId.value !== undefined ? sql.fragment` AND (marketplace_id=${marketplaceId} OR listed=0)` : sql.fragment``}
@@ -40,7 +40,7 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
 
                   ${sql.fragment`(
                     SELECT nft_entities.* 
-                    FROM nft_entities
+                    FROM subquery_2.nft_entities
                     WHERE timestamp_burn IS NULL
                     AND serie_id = '0'
                     ${marketplaceId.value !== undefined ? sql.fragment` AND (marketplace_id=${marketplaceId} OR listed=0)` : sql.fragment``}
