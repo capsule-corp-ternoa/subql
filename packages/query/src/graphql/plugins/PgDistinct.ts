@@ -7,7 +7,7 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
   return {
     typeDefs: gql`
         extend type Query {
-            distinctSerieNfts(listed: Int, owner: String): NftEntitiesConnection
+            distinctSerieNfts(listed: Int, owner: String, marketplaceId: String): NftEntitiesConnection
         }
     `,
     resolvers: {
@@ -15,6 +15,13 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
         distinctSerieNfts: async (_query, args, context, resolveInfo) => {
             const listed = sql.value(args.listed)
             const owner = sql.value(args.owner)
+            const marketplaceId = sql.value(args.marketplaceId)
+            // const { rows } = await context.pgClient.query(
+            //  "select * from public.subqueries"
+            // );
+            // const tableName = sql.value(rows[0].db_schema)
+            // console.log("tableName", tableName)
+            // console.log("tableName value", tableName.value)
             return resolveInfo.graphile.selectGraphQLResultFromTable(
                 sql.fragment`(
                   ${sql.fragment`(
@@ -22,6 +29,7 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
                     FROM subquery_2.nft_entities
                     WHERE timestamp_burn IS NULL
                     AND serie_id <> '0'
+                    ${marketplaceId.value !== undefined ? sql.fragment` AND (marketplace_id=${marketplaceId} OR listed=0)` : sql.fragment``}
                     ${listed.value === 1 ? sql.fragment` AND listed=1` : sql.fragment``}
                     ${listed.value === 0 ? sql.fragment` AND listed=0` : sql.fragment``}
                     ${owner.value !== undefined ? sql.fragment` AND owner=${owner}` : sql.fragment``}
@@ -35,6 +43,7 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
                     FROM subquery_2.nft_entities
                     WHERE timestamp_burn IS NULL
                     AND serie_id = '0'
+                    ${marketplaceId.value !== undefined ? sql.fragment` AND (marketplace_id=${marketplaceId} OR listed=0)` : sql.fragment``}
                     ${listed.value === 1 ? sql.fragment` AND listed=1` : sql.fragment``}
                     ${listed.value === 0 ? sql.fragment` AND listed=0` : sql.fragment``}
                     ${owner.value !== undefined ? sql.fragment` AND owner=${owner}` : sql.fragment``}
