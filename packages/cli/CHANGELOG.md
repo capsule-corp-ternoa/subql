@@ -1,10 +1,51 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), 
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+All logs must start with the format: [x.y.z] - yyyy-mm-dd
+
 ## [Unreleased]
+
+## [0.16.1] - 2021-11-30
+### Fixed
+- Remove auto generated enum types and interfaces (#680)
+
+## [0.16.0] - 2021-11-19
+### Fixed
+- Fix migrate datasource entry path (#641)
+- Touch up command line description (#628)
+### Changed
+- Codegen controller using new type mappings (#532)
+- Update publish command to handle custom datasource (#641)
+- init command now create spec v0.2.0 project by default (#643)
+### Added
+- Support enums in codegen (#551)
+
+## [0.15.0] - 2021-11-03
+### Changed
+- Improve ts typing for `static create()` function in model.ts template (#573)
+- Use jsonrpc client to fetch genesis hash , drop dependencies of polkadot-api (#595)
+- Update `subql validate` to validate custom ds (#596)
+- Bump dependencies (#584)
+### Added
+- New command `Subql migrate` allow convert project manifest v0.0.1 to v0.2.0 (#587)
+
+## [0.14.0] - 2021-10-26
+### Added
+- Added publish CLI command which uploads a project to IPFS if it is using project manifest v0.2.0 (#486)
+### Changed
+- Update Polkadot/api to 6.5.2 (#564)
+
+## [0.13.0] - 2021-10-12
+### Added
+- Cli now support for manifest spec version `0.2.0` (#495)
+- Expand on cli `init` capabilities, default to not installing dependencies (#485)
+
+## [0.12.0] - 2021-09-16
+### Added
+- Adds command `subql build` which webpacks the project code into a single file (#475)
 
 ## [0.11.2] - 2021-09-01
 ### Fixed
@@ -72,12 +113,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - subql init doesn' need --starter by default (#86)
 - model template use bigint instead of BigInt (#82)
 
-## 0.2.0 - 2020-12-22
+## [0.2.0] - 2020-12-22
 ### Changed
 - support subcommand codegen
 - support subcommand init
 
-[Unreleased]: https://github.com/subquery/subql/compare/v0.9.2...HEAD
+[Unreleased]: https://github.com/subquery/subql/compare/cli/0.16.1...HEAD
+[0.16.1]: https://github.com/subquery/subql/compare/cli/0.16.0...cli/0.16.1
+[0.16.0]: https://github.com/subquery/subql/compare/cli/0.15.0...cli/0.16.0
+[0.15.0]: https://github.com/subquery/subql/compare/cli/0.14.0...cli/0.15.0
+[0.14.0]: https://github.com/subquery/subql/compare/cli/0.13.0...cli/0.14.0
 [0.9.2]: https://github.com/subquery/subql/compare/v0.9.0...v0.9.2
 [0.9.0]: https://github.com/subquery/subql/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/subquery/subql/compare/v0.7.3...v0.8.0

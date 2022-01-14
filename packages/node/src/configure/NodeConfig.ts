@@ -2,18 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import assert from 'assert';
-import fs from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
+import { loadFromJsonOrYaml } from '@subql/common';
 import { last } from 'lodash';
-import parseJson from 'parse-json';
 import { LevelWithSilent } from 'pino';
+import { getLogger } from '../utils/logger';
 import { assign } from '../utils/object';
+
+const logger = getLogger('configure');
 
 export interface IConfig {
   readonly configDir?: string;
   readonly subquery: string;
-  readonly subqueryName: string;
+  readonly subqueryName?: string;
+  readonly dbSchema?: string;
   readonly localMode: boolean;
   readonly batchSize: number;
   readonly timeout: number;
@@ -26,10 +28,12 @@ export interface IConfig {
   readonly queryLimit: number;
   readonly indexCountLimit: number;
   readonly timestampField: boolean;
+  readonly proofOfIndex: boolean;
+  readonly mmrPath?: string;
 }
 
-export type MinConfig = Partial<Omit<IConfig, 'subqueryName' | 'subquery'>> &
-  Pick<IConfig, 'subqueryName' | 'subquery'>;
+export type MinConfig = Partial<Omit<IConfig, 'subquery'>> &
+  Pick<IConfig, 'subquery'>;
 
 const DEFAULT_CONFIG = {
   localMode: false,
@@ -40,6 +44,7 @@ const DEFAULT_CONFIG = {
   queryLimit: 100,
   indexCountLimit: 10,
   timestampField: true,
+  proofOfIndex: false,
 };
 
 export class NodeConfig implements IConfig {
@@ -50,19 +55,19 @@ export class NodeConfig implements IConfig {
     configFromArgs?: Partial<IConfig>,
   ): NodeConfig {
     const fileInfo = path.parse(filePath);
-    const rawContent = fs.readFileSync(filePath);
-    let content: IConfig;
-    if (fileInfo.ext === '.json') {
-      content = parseJson(rawContent.toString(), filePath);
-    } else if (fileInfo.ext === '.yaml' || fileInfo.ext === '.yml') {
-      content = yaml.load(rawContent.toString()) as IConfig;
-    } else {
-      throw new Error(
-        `extension ${fileInfo.ext} of provided config file not supported`,
-      );
+
+    let configFromFile: unknown;
+    try {
+      configFromFile = loadFromJsonOrYaml(filePath);
+    } catch (e) {
+      logger.error(`failed to load config file, ${e}`);
+      throw e;
     }
-    content = assign(content, configFromArgs, { configDir: fileInfo.dir });
-    return new NodeConfig(content);
+
+    const config = assign(configFromFile, configFromArgs, {
+      configDir: fileInfo.dir,
+    }) as IConfig;
+    return new NodeConfig(config);
   }
 
   constructor(config: MinConfig) {
@@ -91,6 +96,10 @@ export class NodeConfig implements IConfig {
     return this._config.batchSize;
   }
 
+  get networkEndpoint(): string | undefined {
+    return this._config.networkEndpoint;
+  }
+
   get networkDictionary(): string | undefined {
     return this._config.networkDictionary;
   }
@@ -110,10 +119,6 @@ export class NodeConfig implements IConfig {
     return this._config.outputFmt;
   }
 
-  get networkEndpoint(): string | undefined {
-    return this._config.networkEndpoint;
-  }
-
   get logLevel(): LevelWithSilent {
     return this.debug ? 'debug' : this._config.logLevel;
   }
@@ -128,6 +133,18 @@ export class NodeConfig implements IConfig {
 
   get timestampField(): boolean {
     return this._config.timestampField;
+  }
+
+  get proofOfIndex(): boolean {
+    return this._config.proofOfIndex;
+  }
+
+  get mmrPath(): string {
+    return this._config.mmrPath ?? `.mmr/${this.subqueryName}.mmr`;
+  }
+
+  get dbSchema(): string {
+    return this._config.dbSchema ?? this.subqueryName;
   }
 
   merge(config: Partial<IConfig>): this {

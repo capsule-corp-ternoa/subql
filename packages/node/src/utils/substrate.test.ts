@@ -19,6 +19,8 @@ describe('substrate utils', () => {
     api = await ApiPromise.create({ provider });
   });
 
+  afterAll(() => api?.disconnect());
+
   it('query range of blocks', async () => {
     const blockHash = await api.rpc.chain.getBlockHash(100000);
     await prefetchMetadata(api, blockHash);
@@ -29,6 +31,13 @@ describe('substrate utils', () => {
       expect(block).toHaveProperty('extrinsics');
       expect(block).toHaveProperty('events');
     }
+  });
+
+  it('when failed to fetch, log block height and re-throw error', async () => {
+    //some large number of block height
+    await expect(fetchBlocks(api, 100000000, 100000019)).rejects.toThrow(
+      /Unable to retrieve header and parent from supplied hash/,
+    );
   });
 
   it.skip('query range of blocks via range query', async () => {

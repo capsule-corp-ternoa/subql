@@ -6,13 +6,108 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [0.26.0] - 2021-12-16
+### Added
+- Support dictionary for custom datasource (#686)
+- Automatic adjust fetched block batch size based on memory usage, enable by passing `--scale-batch-size` (#668)
+- Depreciate subqueries table (#683)
+- Add `bulkCreate()` to `store`  (#699)
+- Add support for loading chaintypes from js (#698)
+### Fixed
+- Fix name escaping with db queries (#702)
+- Fix `lastProcessedHeight` value representation (#711)
+
+## [0.25.3] - 2021-12-02
+Priority: High. Any project use enum should re-index with latest node ASAP.
+### Fixed:
+- Skip insert poi when db transaction is null (#687)
+- Replace enum index with unique hash value, in order resolve schema type name conflict issue.(#688)
+
+
+## [0.25.2] - 2021-11-30
+Priority: high for projects indexed with 0.25.x or above
+### Fixed:
+- Upgrade dependency common, in order to remove auto generated enum types from entities relations (#682)
+
+## [0.25.1] - 2021-11-27
+Priority: high for projects use dictionary
+### Fixed:
+- Fix variable replacement in dictionary's gql, remove the quote wrapping (#673)
+### Changed:
+- set default false for `--timestamp-field` (#661)
+
+## [0.25.0] - 2021-11-19
+### Fixed: 
+- Fix publish failing with custom ds and assets (#610)
+- Support for enum, add into store and store operations (#551)
+### Added:
+- Allow running node from a different port through flag `—port`(#618)
+- Add flag `force-clean`, force clean the database, dropping project schemas and tables (#619)
+- Add `unsafe` flag for subql/node (#629)
+### Changed:
+- Merge metadata from query and node (#555)
+- Refactor dictionary gql queries (#613)
+- Use types mapping in storeOperation (#532)
+- Replace patch api with `api.at()` (#638)
+- Update polkadot api to 6.9.2 (#648)
+
+## [0.24.0] - 2021-11-03
+### Added
+- [custom ds] Read and feed assets to custom ds's `validate()` (#547)
+- Improve error msg when fetch block fails (#602)
+### Changed
+- Bump dependencies (#584)
+- Moonbeam EVM,  filter before transforming with custom datasource (#593)
+- Update Polkadot/api to 6.6.1 (#599)
+### Fixed
+- Moonbeam networks shows negative bps and fail Healthy checks (#589)
+
+## [0.23.1] - 2021-10-27
+### Fixed
+- Disable the profiler on health check and remove logs (#569) 
+
+## [0.23.0] - 2021-10-26
+### Added
+- Add MMR service allow to acquire Proof of index information and generate Merkle mountain range root, create and store root value in a file-based database, simultaneously it updates in the corresponding MMR value in the `_poi` table.
+  This feature will be running along with the Proof of index service, also allow the user to specify a local path for .mmr by using flag `--mmr-path`. (#488)
+- Introduce custom datasource (beta), enable subql to support a vary kind of smart contract solutions that embedded in parachains (#512)
+
+### Changed
+- Update Polkadot/api to 6.5.2 (#564)
+
+### Fixed
+- Performance improvement (#565)
+
+## [0.22.0] - 2021-10-12
+### Changed
+- Update Polkadot/api to 6.3.1 to support metadata v14 (#505)
+- Fetch service improve logs to include block height，it threw error at the time (#492)
+
+### Fixed
+- Throw errors when connection dropped by http, and exit (#519)
+- Addition fix for Poi service with if condition (#508)
+
+### Added
+- Support project manifest 0.2.0 (#495)
+
+## [0.21.1] - 2021-09-18
+### Fixed
+- Fixed apollo/client dependency issue (#482)
+
+## [0.21.0] - 2021-09-16
+### Changed
+- Update Polkadot/api to 5.9.1 (#476)
+
+### Added
+- Api service support http(s) endpoint (#474)
+- Add Proof-of-index service allow generate and record the hash of indexed work. User can enable this feature through the `--proof-of-work` command. Please note that this feature is currently in an experimental stage. (#443)
+
 ## [0.20.3] - 2021-09-01
-Upgrade priority: Low. This upgrade improve decode the block with large amount of parameters in the extrinsic.
 ### Changed
 - Update Polkadot/api to 5.7.1 (#460)
 
 ## [0.20.2] - 2021-08-28
-Upgrade priority: High. Any project that uses the dictionary service and defined both event filter and extrinsic filter in its manifest should be re-indexed.
 ### Fixed
 - Solve the missing block height of the event/extrinsic in the batch returned by the dictionary service  (#452)
 
@@ -23,59 +118,56 @@ Upgrade priority: High. Any project that uses the dictionary service and defined
 ## [0.20.0] - 2021-08-20
 ### Changed
 - Update Polkadot/api to 5.5.2 (#439)
+
 ### Added
 - support interpret Bytea type (#432)
 
 ## [0.19.2] - 2021-08-16
 ### Fixed
 - Improve data sources filtering handling and error messages (#417)
+
 ### Changed
 - Adjust health check time to be the same as indexer timeout, or a minimum of 900 seconds. Also, log error when it is not healthy (#420)
 - Update Polkadot/api to 5.5.1 (#433)
 
 ## [0.19.1] - 2021-07-29
-Upgrade priority: High. Fix failed to store schema object array in correct format in database.
 ### Fixed
 - When the schema object type is an array convert to Jsonb type (#406)
 
-
 ## [0.19.0] - 2021-07-27
-Upgrade priority: Low. Upgrade only to support a new `polkadot/api` version and for types.
 ### Changed
 - Bump `polkadot/api` to 5.2.1 (#402)
+
 ### Fixed
 - Disable `api.at()` in patched API (#402)
 - Fix to improve snake case handling for foreign keys and unique index constraint (#382)
 - Fix `subql-node --help` so that it displays full options (#396)
+
 ### Added
 - Expose best block height in meta (#392)
 
 ## [0.18.0] - 2021-07-06
-Upgrade priority: High. Recommend for all projects to upgrade. Require re-indexing if the project previous deployed with node v0.17.0 to v0.17.3
 ### Fixed
 - Fix metric listener handle skip dictionary (#380)
 
 ## [0.17.4] - 2021-07-06
-Upgrade priority: High. Require re-indexing if the project previous deployed with node v0.17.0 to v0.17.3 due to some blocks are missed when indexing.
 ### Fixed
 - Fix problem when filling the block number buffer missing the last number which has caused some block records are missing. (#378)
 
 ## [0.17.3] - 2021-07-06
-Upgrade priority: High. 
 ### Fixed
 - Fixed bug that prevented indexes from being added automatically on foreign keys (#371)
+
 ### Added
 - add profiler to monitoring indexer performance (#369)
 - add metrics to listen status of using dictionary and number of times it been skipped. (#369)
 
 ## [0.17.2] - 2021-07-01
-Upgrade priority: High.
 ### Fixed
 - fix get runtimeVersion failed when fetch service initialization (#367)
 - set useDictionary to false when one of the event/extrinsic filters are not provided (#367)
 
 ## [0.17.1] - 2021-06-29
-Upgrade priority: High.
 ### Fixed
 - Fix an edge case for dictionary query, add blocknumber max range to speed up dictionary (#365)
 
@@ -85,6 +177,7 @@ Upgrade priority: High.
   - Enable by `--network-dictionary=<dictionary_HTTP_url>` or in `project.yaml` - [read more](https://doc.subquery.network/run/run.html#using-a-dictionary) (#342)
   - Add dictionary service to fetch dictionary from external GraphQL API (#342)
   - Add additional block number buffer in fetch service to handle incoming dictionary data (#342)
+
 ### Changed
 - replace vm2 with @subql/x-vm2 (#358)
 - Update other dependencies (#358)
@@ -118,13 +211,14 @@ Upgrade priority: High.
 ## [0.14.0] - 2021-05-19
 ### Fixed
 - Use pull instead of subscribe to get new block height. This solves issues where the subscription stalls and SubQuery reports an incorrect block height.
-  
+
 ### Changed
 - Not all `api.rpc` are banned now, historical RPC methods can be called. See the docs [link](https://doc.subquery.network/create/mapping.html#rpc-calls) (#304)
 - Bump polkadot/api dependency (#310)
 - Replace vm2 with fork to support lib like `@polkadot/*` that uses esm as default (#311)
 
 ## [0.13.0] - 2021-05-06
+### Added
 - Bump release version due to recent major updates, also need publish new release to npm.
 
 ## [0.12.3] - 2021-05-04
@@ -270,7 +364,7 @@ Upgrade priority: High.
 ### Added
 - support callHandler and eventHandler (#47)
 
-## 0.2.0 - 2020-12-22
+## [0.2.0] - 2020-12-22
 ### Added
 - support block handler
 - put subquery tables in their own db schema
@@ -279,7 +373,39 @@ Upgrade priority: High.
 ### Changed
 - bump @polkadot/api to 3.1.1
 
-[Unreleased]: https://github.com/subquery/subql/compare/v0.12.2...HEAD
+[Unreleased]: https://github.com/subquery/subql/compare/node/0.26.0...HEAD
+[0.26.0]: https://github.com/subquery/subql/compare/node/0.25.3...node/0.26.0
+[0.25.3]: https://github.com/subquery/subql/compare/node/0.25.2...node/0.25.3
+[0.25.2]: https://github.com/subquery/subql/compare/node/0.25.1...node/0.25.2
+[0.25.1]: https://github.com/subquery/subql/compare/node/0.25.0...node/0.25.1
+[0.25.0]: https://github.com/subquery/subql/compare/node/0.24.0...node/0.25.0
+[0.24.0]: https://github.com/subquery/subql/compare/node/0.23.1...node/0.24.0
+[0.23.1]: https://github.com/subquery/subql/compare/node/0.23.0...node/0.23.1
+[0.23.0]: https://github.com/subquery/subql/compare/v0.16.0...v0.16.1
+[0.22.0]: https://github.com/subquery/subql/compare/v0.16.0...v0.16.1
+[0.21.1]: https://github.com/subquery/subql/compare/v0.16.0...v0.16.1
+[0.21.0]: https://github.com/subquery/subql/compare/v0.16.0...v0.16.1
+[0.20.3]: https://github.com/subquery/subql/compare/v0.16.0...v0.16.1
+[0.20.2]: https://github.com/subquery/subql/compare/v0.20.1...v0.20.2
+[0.20.1]: https://github.com/subquery/subql/compare/v0.20.0...v0.20.1
+[0.20.0]: https://github.com/subquery/subql/compare/v0.19.2...v0.20.0
+[0.19.2]: https://github.com/subquery/subql/compare/v0.19.1...v0.19.2
+[0.19.1]: https://github.com/subquery/subql/compare/v0.19.0...v0.19.1
+[0.19.0]: https://github.com/subquery/subql/compare/v0.18.0...v0.19.0
+[0.18.0]: https://github.com/subquery/subql/compare/v0.17.4...v0.18.0
+[0.17.4]: https://github.com/subquery/subql/compare/v0.17.3...v0.17.4
+[0.17.3]: https://github.com/subquery/subql/compare/v0.17.2...v0.17.3
+[0.17.2]: https://github.com/subquery/subql/compare/v0.17.1...v0.17.2
+[0.17.1]: https://github.com/subquery/subql/compare/v0.17.0...v0.17.1
+[0.17.0]: https://github.com/subquery/subql/compare/v0.17.0...v0.17.0
+[0.16.2]: https://github.com/subquery/subql/compare/v0.16.1...v0.16.2
+[0.16.1]: https://github.com/subquery/subql/compare/v0.16.0...v0.16.1
+[0.16.0]: https://github.com/subquery/subql/compare/v0.15.1...v0.16.0
+[0.15.1]: https://github.com/subquery/subql/compare/v0.15.0...v0.15.1
+[0.15.0]: https://github.com/subquery/subql/compare/v0.14.0...v0.15.0
+[0.14.0]: https://github.com/subquery/subql/compare/v0.13.0...v0.14.0
+[0.13.0]: https://github.com/subquery/subql/compare/v0.12.3...v0.13.0
+[0.12.3]: https://github.com/subquery/subql/compare/v0.12.2...v0.12.3
 [0.12.2]: https://github.com/subquery/subql/compare/v0.12.0...v0.12.2
 [0.12.0]: https://github.com/subquery/subql/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/subquery/subql/compare/v0.10.2...v0.11.0

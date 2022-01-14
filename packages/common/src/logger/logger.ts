@@ -1,22 +1,26 @@
 // Copyright 2020-2021 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import fs from 'fs';
+import path from 'path';
 import {stringify} from 'flatted';
 import Pino, {LevelWithSilent} from 'pino';
+import {createStream} from 'rotating-file-stream';
 import {colorizeLevel, ctx} from './colors';
-
 export interface LoggerOption {
-  outputFormat?: 'json' | 'colored';
   level?: string;
+  filepath?: string;
+  rotate?: boolean;
   nestedKey?: string;
+  outputFormat?: 'json' | 'colored';
 }
 
 export class Logger {
   private pino: Pino.Logger;
   private childLoggers: {[category: string]: Pino.Logger} = {};
 
-  constructor({level: logLevel = 'info', nestedKey, outputFormat}: LoggerOption) {
-    this.pino = Pino({
+  constructor({filepath, level: logLevel = 'info', nestedKey, outputFormat, rotate}: LoggerOption) {
+    const options = {
       messageKey: 'message',
       timestamp: () => `,"timestamp":"${new Date().toISOString()}"`,
       nestedKey,
@@ -44,7 +48,7 @@ export class Logger {
             }
           : {},
       prettyPrint: outputFormat !== 'json',
-      prettifier: function (options) {
+      prettifier: function (options: unknown) {
         // `this` is bound to the pino instance
         // Deal with whatever options are supplied.
         return function prettifier(inputData: string | object) {
@@ -68,11 +72,30 @@ export class Logger {
           return `${time} <${ctx.magentaBright(category)}> ${colorizeLevel(level)} ${message} ${error}\n`;
         };
 
-        function isObject(input) {
+        function isObject(input: unknown): boolean {
           return Object.prototype.toString.apply(input) === '[object Object]';
         }
       },
-    });
+    } as Pino.LoggerOptions;
+
+    if (filepath) {
+      const baseName = path.basename(filepath);
+      const dirName = path.dirname(path.resolve(filepath));
+
+      const rotateOptions = {
+        interval: '1d',
+        maxFiles: 7,
+        maxSize: '1G',
+      };
+
+      if (rotate) {
+        this.pino = Pino(options, createStream(baseName, {path: dirName, ...rotateOptions}));
+      } else {
+        this.pino = Pino(options, createStream(baseName, {path: dirName}));
+      }
+    } else {
+      this.pino = Pino(options);
+    }
   }
 
   getLogger(category: string): Pino.Logger {

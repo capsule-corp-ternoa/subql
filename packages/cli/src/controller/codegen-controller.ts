@@ -6,26 +6,30 @@ import path from 'path';
 import {promisify} from 'util';
 import {
   getAllEntitiesRelations,
-  buildSchema,
   loadProjectManifest,
   getAllJsonObjects,
   setJsonObjectType,
+  getTypeByScalarName,
+  GraphQLEntityField,
+  GraphQLJsonFieldType,
+  GraphQLEntityIndex,
+  getAllEnums,
 } from '@subql/common';
-import {GraphQLEntityField, GraphQLJsonFieldType, GraphQLEntityIndex} from '@subql/common/graphql/types';
 import ejs from 'ejs';
 import {upperFirst} from 'lodash';
 import rimraf from 'rimraf';
-import {transformTypes} from './types-mapping';
 
 const MODEL_TEMPLATE_PATH = path.resolve(__dirname, '../template/model.ts.ejs');
 const MODELS_INDEX_TEMPLATE_PATH = path.resolve(__dirname, '../template/models-index.ts.ejs');
 const TYPES_INDEX_TEMPLATE_PATH = path.resolve(__dirname, '../template/types-index.ts.ejs');
 const INTERFACE_TEMPLATE_PATH = path.resolve(__dirname, '../template/interface.ts.ejs');
+const ENUM_TEMPLATE_PATH = path.resolve(__dirname, '../template/enum.ts.ejs');
 const TYPE_ROOT_DIR = 'src/types';
 const MODEL_ROOT_DIR = 'src/types/models';
 const exportTypes = {
   models: false,
   interfaces: false,
+  enums: false,
 };
 
 // 4. Render entity data in ejs template and write it
@@ -39,13 +43,14 @@ export interface ProcessedField {
   name: string;
   type: string;
   required: boolean;
+  isEnum: boolean;
   indexed: boolean;
   unique?: boolean;
   isArray: boolean;
   isJsonInterface: boolean;
 }
 
-export async function generateJsonInterfaces(projectPath, schema: string) {
+export async function generateJsonInterfaces(projectPath: string, schema: string): Promise<void> {
   const typesDir = path.join(projectPath, TYPE_ROOT_DIR);
   const jsonObjects = getAllJsonObjects(schema);
   const jsonInterfaces = jsonObjects.map((r) => {
@@ -75,6 +80,31 @@ export async function generateJsonInterfaces(projectPath, schema: string) {
   }
 }
 
+export async function generateEnums(projectPath: string, schema: string): Promise<void> {
+  const typesDir = path.join(projectPath, TYPE_ROOT_DIR);
+  const jsonObjects = getAllEnums(schema);
+  const enums = jsonObjects.map((r) => {
+    return {
+      name: r.name,
+      values: r.getValues().map((v) => v.name),
+    };
+  });
+
+  if (enums.length !== 0) {
+    const enumsTemplate = {
+      props: {
+        enums,
+      },
+    };
+    try {
+      await renderTemplate(ENUM_TEMPLATE_PATH, path.join(typesDir, `enums.ts`), enumsTemplate);
+      exportTypes.enums = true;
+    } catch (e) {
+      throw new Error(`When render enums having problems.`);
+    }
+  }
+}
+
 export function processFields(
   type: 'entity' | 'jsonField',
   className: string,
@@ -87,6 +117,7 @@ export function processFields(
       name: field.name,
       required: !field.nullable,
       isArray: field.isArray,
+      isEnum: false,
     } as ProcessedField;
     if (type === 'entity') {
       const [indexed, unique] = indexFields.reduce<[boolean, boolean]>(
@@ -106,24 +137,31 @@ export function processFields(
       injectField.indexed = indexed;
       injectField.unique = unique;
     }
-
-    switch (field.type) {
-      default: {
-        injectField.type = transformTypes(className, field.type.toString());
-        if (!injectField.type) {
-          throw new Error(
-            `Schema: undefined type "${field.type.toString()}" on field "${field.name}" in "type ${className} @${type}"`
-          );
+    if ((field as GraphQLEntityField).isEnum) {
+      injectField.type = field.type;
+      injectField.isEnum = true;
+      injectField.isJsonInterface = false;
+    } else {
+      switch (field.type) {
+        default: {
+          injectField.type = getTypeByScalarName(field.type).tsType;
+          if (!injectField.type) {
+            throw new Error(
+              `Schema: undefined type "${field.type.toString()}" on field "${
+                field.name
+              }" in "type ${className} @${type}"`
+            );
+          }
+          injectField.isJsonInterface = false;
+          break;
         }
-        injectField.isJsonInterface = false;
-        break;
-      }
-      case 'Json': {
-        if (field.jsonInterface === undefined) {
-          throw new Error(`On field ${field.name} type is Json but json interface is not defined`);
+        case 'Json': {
+          if (field.jsonInterface === undefined) {
+            throw new Error(`On field ${field.name} type is Json but json interface is not defined`);
+          }
+          injectField.type = upperFirst(field.jsonInterface.name);
+          injectField.isJsonInterface = true;
         }
-        injectField.type = upperFirst(field.jsonInterface.name);
-        injectField.isJsonInterface = true;
       }
     }
     fieldList.push(injectField);
@@ -151,7 +189,8 @@ export async function codegen(projectPath: string): Promise<void> {
   const manifest = loadProjectManifest(projectPath);
   await generateJsonInterfaces(projectPath, path.join(projectPath, manifest.schema));
   await generateModels(projectPath, path.join(projectPath, manifest.schema));
-  if (exportTypes.interfaces || exportTypes.models) {
+  await generateEnums(projectPath, path.join(projectPath, manifest.schema));
+  if (exportTypes.interfaces || exportTypes.models || exportTypes.enums) {
     try {
       await renderTemplate(TYPES_INDEX_TEMPLATE_PATH, path.join(projectPath, TYPE_ROOT_DIR, `index.ts`), {
         props: {
@@ -174,6 +213,7 @@ export async function generateModels(projectPath: string, schema: string): Promi
     const entityName = entity.name;
     const fields = processFields('entity', className, entity.fields, entity.indexes);
     const importJsonInterfaces = fields.filter((field) => field.isJsonInterface).map((f) => f.type);
+    const importEnums = fields.filter((field) => field.isEnum).map((f) => f.type);
     const indexedFields = fields.filter((field) => field.indexed && !field.isJsonInterface);
     const modelTemplate = {
       props: {
@@ -182,6 +222,7 @@ export async function generateModels(projectPath: string, schema: string): Promi
         entityName,
         fields,
         importJsonInterfaces,
+        importEnums,
         indexedFields,
       },
       helper: {
@@ -195,6 +236,7 @@ export async function generateModels(projectPath: string, schema: string): Promi
         modelTemplate
       );
     } catch (e) {
+      console.error(e);
       throw new Error(`When render entity ${className} to schema having problems.`);
     }
     console.log(`* Schema ${className} generated !`);

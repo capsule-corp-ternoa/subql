@@ -15,14 +15,15 @@ import {
   SubqlBlockFilter,
   SubqlCallFilter,
   SubqlEventFilter,
-} from '@subql/common';
-import {
   SubstrateBlock,
   SubstrateEvent,
   SubstrateExtrinsic,
 } from '@subql/types';
 import { last, merge, range } from 'lodash';
 import { BlockContent } from '../indexer/types';
+import { getLogger } from './logger';
+
+const logger = getLogger('fetch');
 
 export function wrapBlock(
   signedBlock: SignedBlock,
@@ -126,34 +127,52 @@ export function filterBlock(
 
 export function filterExtrinsics(
   extrinsics: SubstrateExtrinsic[],
-  filter?: SubqlCallFilter,
+  filterOrFilters: SubqlCallFilter | SubqlCallFilter[] | undefined,
 ): SubstrateExtrinsic[] {
-  if (!filter) return extrinsics;
-  return extrinsics.filter(
-    ({ block, extrinsic, success }) =>
-      (filter.specVersion === undefined ||
-        block.specVersion === undefined ||
-        checkSpecRange(filter.specVersion, block.specVersion)) &&
-      (filter.module === undefined ||
-        extrinsic.method.section === filter.module) &&
-      (filter.method === undefined ||
-        extrinsic.method.method === filter.method) &&
-      (filter.success === undefined || success === filter.success),
+  if (
+    !filterOrFilters ||
+    (filterOrFilters instanceof Array && filterOrFilters.length === 0)
+  ) {
+    return extrinsics;
+  }
+  const filters =
+    filterOrFilters instanceof Array ? filterOrFilters : [filterOrFilters];
+  return extrinsics.filter(({ block, extrinsic, success }) =>
+    filters.find(
+      (filter) =>
+        (filter.specVersion === undefined ||
+          block.specVersion === undefined ||
+          checkSpecRange(filter.specVersion, block.specVersion)) &&
+        (filter.module === undefined ||
+          extrinsic.method.section === filter.module) &&
+        (filter.method === undefined ||
+          extrinsic.method.method === filter.method) &&
+        (filter.success === undefined || success === filter.success),
+    ),
   );
 }
 
 export function filterEvents(
   events: SubstrateEvent[],
-  filter?: SubqlEventFilter,
+  filterOrFilters?: SubqlEventFilter | SubqlEventFilter[] | undefined,
 ): SubstrateEvent[] {
-  if (!filter) return events;
-  return events.filter(
-    ({ block, event }) =>
-      (filter.specVersion === undefined ||
-        block.specVersion === undefined ||
-        checkSpecRange(filter.specVersion, block.specVersion)) &&
-      (filter.module ? event.section === filter.module : true) &&
-      (filter.method ? event.method === filter.method : true),
+  if (
+    !filterOrFilters ||
+    (filterOrFilters instanceof Array && filterOrFilters.length === 0)
+  ) {
+    return events;
+  }
+  const filters =
+    filterOrFilters instanceof Array ? filterOrFilters : [filterOrFilters];
+  return events.filter(({ block, event }) =>
+    filters.find(
+      (filter) =>
+        (filter.specVersion === undefined ||
+          block.specVersion === undefined ||
+          checkSpecRange(filter.specVersion, block.specVersion)) &&
+        (filter.module ? event.section === filter.module : true) &&
+        (filter.method ? event.method === filter.method : true),
+    ),
   );
 }
 
@@ -240,16 +259,29 @@ export async function fetchBlocksViaRangeQuery(
   });
 }
 
+async function getBlockByHeight(
+  api: ApiPromise,
+  height: number,
+): Promise<SignedBlock> {
+  const blockHash = await api.rpc.chain.getBlockHash(height).catch((e) => {
+    logger.error(`failed to fetch BlockHash ${height}`);
+    throw e;
+  });
+  return api.rpc.chain.getBlock(blockHash).catch((e) => {
+    logger.error(`failed to fetch Block ${blockHash}`);
+    throw e;
+  });
+}
+
 export async function fetchBlocksRange(
   api: ApiPromise,
   startHeight: number,
   endHeight: number,
 ): Promise<SignedBlock[]> {
   return Promise.all(
-    range(startHeight, endHeight + 1).map(async (height) => {
-      const blockHash = await api.rpc.chain.getBlockHash(height);
-      return api.rpc.chain.getBlock(blockHash);
-    }),
+    range(startHeight, endHeight + 1).map(async (height) =>
+      getBlockByHeight(api, height),
+    ),
   );
 }
 
@@ -258,10 +290,7 @@ export async function fetchBlocksArray(
   blockArray: number[],
 ): Promise<SignedBlock[]> {
   return Promise.all(
-    blockArray.map(async (height) => {
-      const blockHash = await api.rpc.chain.getBlockHash(height);
-      return api.rpc.chain.getBlock(blockHash);
-    }),
+    blockArray.map(async (height) => getBlockByHeight(api, height)),
   );
 }
 
@@ -269,7 +298,14 @@ export async function fetchEventsRange(
   api: ApiPromise,
   hashs: BlockHash[],
 ): Promise<Vec<EventRecord>[]> {
-  return Promise.all(hashs.map((hash) => api.query.system.events.at(hash)));
+  return Promise.all(
+    hashs.map((hash) =>
+      api.query.system.events.at(hash).catch((e) => {
+        logger.error(`failed to fetch events at block ${hash}`);
+        throw e;
+      }),
+    ),
+  );
 }
 
 export async function fetchRuntimeVersionRange(
@@ -277,13 +313,18 @@ export async function fetchRuntimeVersionRange(
   hashs: BlockHash[],
 ): Promise<RuntimeVersion[]> {
   return Promise.all(
-    hashs.map((hash) => api.rpc.state.getRuntimeVersion(hash)),
+    hashs.map((hash) =>
+      api.rpc.state.getRuntimeVersion(hash).catch((e) => {
+        logger.error(`failed to fetch RuntimeVersion at block ${hash}`);
+        throw e;
+      }),
+    ),
   );
 }
 
 export async function fetchBlocksBatches(
   api: ApiPromise,
-  blockArray,
+  blockArray: number[],
   overallSpecVer?: number,
   // specVersionMap?: number[],
 ): Promise<BlockContent[]> {

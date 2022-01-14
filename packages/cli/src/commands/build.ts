@@ -1,30 +1,44 @@
 // Copyright 2020-2021 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import child from 'child_process';
+import {lstatSync, readFileSync} from 'fs';
+import path from 'path';
 import {Command, flags} from '@oclif/command';
+import cli from 'cli-ux';
+import {runWebpack} from '../controller/build-controller';
+import Validate from './validate';
 
 export default class Build extends Command {
-  static description = 'Pack this SubQuery project';
+  static description = 'Build this SubQuery project code';
 
   static flags = {
-    force: flags.boolean({char: 'f'}),
-    file: flags.string(),
+    location: flags.string({char: 'l', description: 'local folder'}),
+    mode: flags.enum({options: ['production', 'prod', 'development', 'dev'], default: 'production'}),
   };
 
   async run(): Promise<void> {
-    // run npm pack
-    this.log('Packing your SubQuery Project ...');
-    await new Promise((resolve, reject) => {
-      child.exec(`rm -rf dist && tsc -b && npm pack`, (error: child.ExecException, stdout: string, stderr: string) => {
-        if (error) {
-          reject(error);
-          this.log(stderr);
-        } else {
-          resolve(stdout);
-          this.log('Finished packing!');
-        }
-      });
-    });
+    const {flags} = this.parse(Build);
+
+    const directory = flags.location ? path.resolve(flags.location) : process.cwd();
+    const isDev = flags.mode === 'development' || flags.mode === 'dev';
+
+    if (!lstatSync(directory).isDirectory()) {
+      this.error('Argument `location` is not a valid directory');
+    }
+
+    // Check that we're in a valid project
+    try {
+      await Validate.run(['--silent', '--location', directory]);
+    } catch (e) {
+      this.error('Directory is not a valid project');
+    }
+
+    // Get the output location from the project package.json main field
+    const pjson = JSON.parse(readFileSync(path.join(directory, 'package.json')).toString());
+    const outputPath = path.resolve(directory, pjson.main || 'dist/index.js');
+
+    cli.action.start('Building and packing code');
+    await runWebpack(path.join(directory, 'src/index.ts'), outputPath, isDev, true);
+    cli.action.stop();
   }
 }

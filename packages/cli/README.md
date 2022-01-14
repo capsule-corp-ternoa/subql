@@ -8,50 +8,56 @@ cli for polkagraph
 [![License](https://img.shields.io/npm/l/@subql/cli.svg)](https://github.com/packages/cli/blob/master/package.json)
 
 <!-- toc -->
-* [@subql/cli](#subqlcli)
-* [Usage](#usage)
-* [Commands](#commands)
+
+- [@subql/cli](#subqlcli)
+- [Usage](#usage)
+- [Commands](#commands)
 <!-- tocstop -->
 
 # Usage
 
 <!-- usage -->
+
 ```sh-session
 $ npm install -g @subql/cli
 $ subql COMMAND
 running command...
 $ subql (-v|--version|version)
-@subql/cli/0.11.2-0 linux-x64 node-v14.17.5
+@subql/cli/0.16.2-1 linux-x64 node-v16.13.1
 $ subql --help [COMMAND]
 USAGE
   $ subql COMMAND
 ...
 ```
+
 <!-- usagestop -->
 
 # Commands
 
 <!-- commands -->
-* [`subql build`](#subql-build)
-* [`subql codegen`](#subql-codegen)
-* [`subql help [COMMAND]`](#subql-help-command)
-* [`subql init [PROJECTNAME]`](#subql-init-projectname)
-* [`subql validate`](#subql-validate)
+
+- [`subql build`](#subql-build)
+- [`subql codegen`](#subql-codegen)
+- [`subql help [COMMAND]`](#subql-help-command)
+- [`subql init [PROJECTNAME]`](#subql-init-projectname)
+- [`subql migrate`](#subql-migrate)
+- [`subql publish`](#subql-publish)
+- [`subql validate`](#subql-validate)
 
 ## `subql build`
 
-Pack this SubQuery project
+Build this SubQuery project code
 
 ```
 USAGE
   $ subql build
 
 OPTIONS
-  -f, --force
-  --file=file
+  -l, --location=location                   local folder
+  --mode=(production|prod|development|dev)  [default: production]
 ```
 
-_See code: [lib/commands/build.js](https://github.com/packages/cli/blob/v0.11.2-0/lib/commands/build.js)_
+_See code: [lib/commands/build.js](https://github.com/packages/cli/blob/v0.16.2-1/lib/commands/build.js)_
 
 ## `subql codegen`
 
@@ -63,10 +69,11 @@ USAGE
 
 OPTIONS
   -f, --force
+  -l, --location=location  local folder to run codegen in
   --file=file
 ```
 
-_See code: [lib/commands/codegen.js](https://github.com/packages/cli/blob/v0.11.2-0/lib/commands/codegen.js)_
+_See code: [lib/commands/codegen.js](https://github.com/packages/cli/blob/v0.16.2-1/lib/commands/codegen.js)_
 
 ## `subql help [COMMAND]`
 
@@ -83,11 +90,11 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.2/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.3/src/commands/help.ts)_
 
 ## `subql init [PROJECTNAME]`
 
-Init a scaffold subquery project
+Initialize a scaffold subquery project
 
 ```
 USAGE
@@ -98,23 +105,63 @@ ARGUMENTS
 
 OPTIONS
   -f, --force
+  -l, --location=location    local folder to create the project in
+  --install-dependencies     Install dependencies as well
+  --npm                      Force using NPM instead of yarn, only works with `install-dependencies` flag
+  --specVersion=0.0.1|0.2.0  [default: 0.2.0] The spec version to be used by the project
   --starter
 ```
 
-_See code: [lib/commands/init.js](https://github.com/packages/cli/blob/v0.11.2-0/lib/commands/init.js)_
+_See code: [lib/commands/init.js](https://github.com/packages/cli/blob/v0.16.2-1/lib/commands/init.js)_
+
+## `subql migrate`
+
+Migrate Subquery project manifest v0.0.1 to v0.2.0
+
+```
+USAGE
+  $ subql migrate
+
+OPTIONS
+  -f, --force
+  -l, --location=location  local folder to run migrate in
+  --file=file
+```
+
+_See code: [lib/commands/migrate.js](https://github.com/packages/cli/blob/v0.16.2-1/lib/commands/migrate.js)_
+
+## `subql publish`
+
+Upload this SubQuery project to IPFS
+
+```
+USAGE
+  $ subql publish
+
+OPTIONS
+  -l, --location=location  local folder
+  --ipfs=ipfs              [default: http://localhost:5001/api/v0] IPFS gateway endpoint
+```
+
+_See code: [lib/commands/publish.js](https://github.com/packages/cli/blob/v0.16.2-1/lib/commands/publish.js)_
 
 ## `subql validate`
 
-check a folder or github repo is a validate subquery project
+Check a folder or github repo is a validate subquery project
 
 ```
 USAGE
   $ subql validate
 
 OPTIONS
-  -l, --location=location  local folder or github repo url
+  -l, --location=location  local folder, github repo url or IPFS cid
+
+  --ipfs=ipfs              [default: https://ipfs.thechainhub.com/api/v0] IPFS gateway endpoint, used for validating
+                           projects on IPFS
+
   --silent
 ```
 
-_See code: [lib/commands/validate.js](https://github.com/packages/cli/blob/v0.11.2-0/lib/commands/validate.js)_
+_See code: [lib/commands/validate.js](https://github.com/packages/cli/blob/v0.16.2-1/lib/commands/validate.js)_
+
 <!-- commandsstop -->
