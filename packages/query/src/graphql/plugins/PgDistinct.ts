@@ -7,7 +7,7 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
   return {
     typeDefs: gql`
         extend type Query {
-            distinctSerieNfts(listed: Int, owner: String, marketplaceId: String): NftEntitiesConnection
+            distinctSerieNfts(listed: Int, owner: String, marketplaceId: String, isCapsule: Boolean): NftEntitiesConnection
         }
     `,
     resolvers: {
@@ -16,41 +16,41 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
             const listed = sql.value(args.listed)
             const owner = sql.value(args.owner)
             const marketplaceId = sql.value(args.marketplaceId)
-            // const { rows } = await context.pgClient.query(
-            //  "select * from public.subqueries"
-            // );
-            // const tableName = sql.value(rows[0].db_schema)
-            // console.log("tableName", tableName)
-            // console.log("tableName value", tableName.value)
+            const isCapsule = sql.value(args.isCapsule)
+            const orderBy = ` ORDER BY created_at${listed.value === undefined ? ', listed desc' : ''}${isCapsule.value === undefined ? ', is_capsule asc' : ''}`
             return resolveInfo.graphile.selectGraphQLResultFromTable(
                 sql.fragment`(
                   ${sql.fragment`(
                     SELECT DISTINCT ON (serie_id) nft_entities.* 
-                    FROM subquery_1.nft_entities
+                    FROM subql-ternoa.nft_entities
                     WHERE timestamp_burn IS NULL
                     AND serie_id <> '0'
                     ${marketplaceId.value !== undefined ? sql.fragment` AND (marketplace_id=${marketplaceId} OR listed=0)` : sql.fragment``}
                     ${listed.value === 1 ? sql.fragment` AND listed=1` : sql.fragment``}
                     ${listed.value === 0 ? sql.fragment` AND listed=0` : sql.fragment``}
+                    ${isCapsule.value === true ? sql.fragment` AND is_capsule=true` : sql.fragment``}
+                    ${isCapsule.value === false ? sql.fragment` AND is_capsule=false` : sql.fragment``}
                     ${owner.value !== undefined ? sql.fragment` AND owner=${owner}` : sql.fragment``}
-                    ${listed.value === undefined ? sql.fragment` ORDER BY serie_id, listed desc` : sql.fragment``}
+                    ${sql.fragment`${orderBy}`}
                   )`}
 
                   ${sql.fragment`UNION`}
 
                   ${sql.fragment`(
                     SELECT nft_entities.* 
-                    FROM subquery_1.nft_entities
+                    FROM subql-ternoa.nft_entities
                     WHERE timestamp_burn IS NULL
                     AND serie_id = '0'
                     ${marketplaceId.value !== undefined ? sql.fragment` AND (marketplace_id=${marketplaceId} OR listed=0)` : sql.fragment``}
                     ${listed.value === 1 ? sql.fragment` AND listed=1` : sql.fragment``}
                     ${listed.value === 0 ? sql.fragment` AND listed=0` : sql.fragment``}
+                    ${isCapsule.value === true ? sql.fragment` AND is_capsule=true` : sql.fragment``}
+                    ${isCapsule.value === false ? sql.fragment` AND is_capsule=false` : sql.fragment``}
                     ${owner.value !== undefined ? sql.fragment` AND owner=${owner}` : sql.fragment``}
-                    ${listed.value === undefined ? sql.fragment` ORDER BY serie_id, listed desc` : sql.fragment``}
+                    ${sql.fragment`${orderBy}`}
                   )`}
 
-                  ${listed.value === undefined ? sql.fragment` ORDER BY serie_id, listed desc` : sql.fragment``}
+                  ${sql.fragment`${orderBy}`}
                 )`
                 ,
                 () => {}
