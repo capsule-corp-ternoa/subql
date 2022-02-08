@@ -6,6 +6,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.2] - 2021-01-23
+### Changed
+- Update Polkadot/api to 7.4.1 (#757)
+### Fixed
+- Fix genesis hash validation for manifest v0.0.1 (#762)
+
+## [0.27.1] - 2021-01-18
+### Changed
+- Ready endpoint return code (#750)
+
+## [0.27.0] - 2021-01-13
+### Changed
+- Deprecate local mode (#725)
+- Update Polkadot/api to 7.3.1 (#745)
+### Added 
+- Add ready status of indexer to endpoint (#728)
+- Add `--port` option, auto find available port when the default one is occupied. (#739)ss
+### Fixed
+- Fix handle chainTypes error (#732)
+- Try catch on init api with chainTypes (#738)
+- Verify project store genesis hash with network genesis hash, instead of check specName only (#735)
+- Remove update metadata last processed block by interval (#740)
+- Use Promise.all for set metadata (#743)
+
 
 ## [0.26.0] - 2021-12-16
 ### Added
@@ -373,7 +397,10 @@ Priority: high for projects use dictionary
 ### Changed
 - bump @polkadot/api to 3.1.1
 
-[Unreleased]: https://github.com/subquery/subql/compare/node/0.26.0...HEAD
+[Unreleased]: https://github.com/subquery/subql/compare/node/0.27.2...HEAD
+[0.27.2]: https://github.com/subquery/subql/compare/node/0.27.1...node/0.27.2
+[0.27.1]: https://github.com/subquery/subql/compare/node/0.27.0...node/0.27.1
+[0.27.0]: https://github.com/subquery/subql/compare/node/0.26.0...node/0.27.0
 [0.26.0]: https://github.com/subquery/subql/compare/node/0.25.3...node/0.26.0
 [0.25.3]: https://github.com/subquery/subql/compare/node/0.25.2...node/0.25.3
 [0.25.2]: https://github.com/subquery/subql/compare/node/0.25.1...node/0.25.2

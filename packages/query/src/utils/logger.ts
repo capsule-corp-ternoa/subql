@@ -1,4 +1,4 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import {LoggerService} from '@nestjs/common';
@@ -36,3 +36,24 @@ export class NestLogger implements LoggerService {
     this.logger.warn(message);
   }
 }
+
+export const PinoConfig = {
+  logger: getLogger('express'),
+  serializers: {
+    req(req) {
+      const body = req.raw.body;
+      if ('operationName' in body && body.query) {
+        // Logging IntrospectionQuery payload clutters logs and isn't useful
+        if (body.operationName === 'IntrospectionQuery') {
+          req.introspection = true;
+        } else {
+          req.payload = body.query;
+        }
+      }
+      return req;
+    },
+  },
+  autoLogging: {
+    ignorePaths: ['/.well-known/apollo/server-health'],
+  },
+};

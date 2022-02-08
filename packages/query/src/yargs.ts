@@ -1,4 +1,4 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import {argv as yargv} from 'yargs';
@@ -53,6 +53,12 @@ export function getYargsOption() {
       demandOption: false,
       describe: 'Disable limits on query depth and allowable number returned query records',
       type: 'boolean',
+    },
+    port: {
+      alias: 'p',
+      demandOption: false,
+      describe: 'The port the service will bind to',
+      type: 'number',
     },
   });
 }

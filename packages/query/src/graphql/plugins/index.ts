@@ -1,4 +1,4 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 /* eslint-disable */
@@ -50,6 +50,7 @@ import PgBackwardRelationPlugin from './PgBackwardRelationPlugin';
 import {GetMetadataPlugin} from './GetMetadataPlugin';
 import {smartTagsPlugin} from './smartTagsPlugin';
 import {makeAddInflectorsPlugin} from 'graphile-utils';
+import PgAggregationPlugin from './PgAggregationPlugin';
 
 /* eslint-enable */
 
@@ -96,11 +97,35 @@ export const pgDefaultPlugins = [
   PgConnectionTotalCount,
 ];
 
-export const plugins = [
+const plugins = [
   ...defaultPlugins,
   ...pgDefaultPlugins,
   PgSimplifyInflectorPlugin,
   PgManyToManyPlugin,
   ConnectionFilterPlugin,
   PgDistinct,
+  smartTagsPlugin,
+  GetMetadataPlugin,
+  PgAggregationPlugin,
+  makeAddInflectorsPlugin((inflectors) => {
+    const {constantCase: oldConstantCase} = inflectors;
+    const enumValues = new Set();
+    return {
+      enumName: (v: string) => {
+        enumValues.add(v);
+        return v;
+      },
+      constantCase: (v: string) => {
+        // We don't want to change the names of all enum values to CONSTANT CASE
+        // because they could be specified in non CONSTANT CASE in their schema.graphql
+        if (enumValues.has(v)) {
+          return v;
+        } else {
+          return oldConstantCase(v);
+        }
+      },
+    };
+  }, true),
 ];
+
+export {plugins};

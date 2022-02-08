@@ -1,13 +1,11 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import fs from 'fs';
 import path from 'path';
-import {loadProjectManifest, manifestIsV0_2_0, ProjectManifestV0_2_0Impl, isCustomDs} from '@subql/common';
+import { parseProjectManifest, manifestIsV0_2_0, ReaderFactory } from '@subql/common';
 import {FileReference} from '@subql/types';
 import IPFS from 'ipfs-http-client';
-import yaml from 'js-yaml';
-import {runWebpack} from './build-controller';
 
 // https://github.com/ipfs/js-ipfs/blob/master/docs/core-api/FILES.md#filecontent
 type FileContent = Uint8Array | string | Iterable<Uint8Array> | Iterable<number> | AsyncIterable<Uint8Array>;
@@ -23,17 +21,11 @@ type FileObject = {
 export async function uploadToIpfs(ipfsEndpoint: string, projectDir: string): Promise<string> {
   const ipfs = IPFS.create({url: ipfsEndpoint});
 
-  const projectManifestPath = path.resolve(projectDir, 'project.yaml');
-  const manifest = loadProjectManifest(projectManifestPath).asImpl;
+  const reader = await ReaderFactory.create(projectDir);
+  const manifest = parseProjectManifest(await reader.getProjectSchema()).asImpl;
 
   if (!manifestIsV0_2_0(manifest)) {
     throw new Error('Unsupported project manifest spec, only 0.2.0 is supported');
-  }
-
-  for (const ds of manifest.dataSources) {
-    if (isCustomDs(ds)) {
-      ds.processor.file = await packProcessor(projectDir, ds.processor.file);
-    }
   }
 
   const deployment = await replaceFileReferences(ipfs, projectDir, manifest);
@@ -73,13 +65,6 @@ async function uploadFile(ipfs: IPFS.IPFSHTTPClient, content: FileObject | FileC
   return result.cid.toString();
 }
 
-function toMinifiedYaml(manifest: ProjectManifestV0_2_0Impl): string {
-  return yaml.dump(manifest, {
-    sortKeys: true,
-    condenseFlow: true,
-  });
-}
-
 function mapToObject(map: Map<string | number, unknown>): Record<string | number, unknown> {
   // XXX can use Object.entries with newer versions of node.js
   const assetsObj: Record<string, unknown> = {};
@@ -92,17 +77,4 @@ function mapToObject(map: Map<string | number, unknown>): Record<string | number
 
 function isFileReference(value: any): value is FileReference {
   return value.file && typeof value.file === 'string';
-}
-
-const processorCache: Record<string, string> = {};
-
-async function packProcessor(projectDir: string, processorEntry: string): Promise<string> {
-  if (!processorCache[processorEntry]) {
-    const output = path.resolve(projectDir, `./dist/processors/${path.basename(processorEntry)}`);
-    await runWebpack(processorEntry, output, false);
-
-    processorCache[processorEntry] = output;
-  }
-
-  return processorCache[processorEntry];
 }

@@ -1,5 +1,10 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
+
+export type TableEstimate = {
+  table: string;
+  estimate: number;
+};
 
 export type MetaData = {
   lastProcessedHeight: number;
@@ -11,4 +16,5 @@ export type MetaData = {
   indexerHealthy: boolean;
   indexerNodeVersion: string;
   queryNodeVersion: string;
+  rowCountEstimate: [TableEstimate];
 };
