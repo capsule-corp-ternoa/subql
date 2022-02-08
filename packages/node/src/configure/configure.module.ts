@@ -1,4 +1,4 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import assert from 'assert';
@@ -9,7 +9,7 @@ import { camelCase, last, omitBy, isNil } from 'lodash';
 import { getLogger, setLevel } from '../utils/logger';
 import { getYargsOption } from '../yargs';
 import { IConfig, MinConfig, NodeConfig } from './NodeConfig';
-import { SubqueryProject } from './project.model';
+import { SubqueryProject } from './SubqueryProject';
 
 const logger = getLogger('configure');
 
@@ -68,6 +68,19 @@ export function validDbSchemaName(name: string): boolean {
   }
 }
 
+function warnDeprecations() {
+  const yargsOptions = getYargsOption();
+  const { argv } = yargsOptions;
+  if (argv['subquery-name']) {
+    logger.warn(
+      'Note that argument --subquery-name has been deprecated in favour of --db-schema',
+    );
+  }
+  if (argv.local) {
+    logger.warn('Note that argument --local has been deprecated');
+  }
+}
+
 @Global()
 @Module({})
 export class ConfigureModule {
@@ -85,12 +98,8 @@ export class ConfigureModule {
         yargsOptions.showHelp();
         process.exit(1);
       }
-      if (argv['subquery-name']) {
-        logger.info(
-          'Note that argument --subquery-name has been deprecated in favour of --schema',
-        );
-      }
 
+      warnDeprecations();
       assert(argv.subquery, 'subquery path is missing');
       config = new NodeConfig(defaultSubqueryName(yargsToIConfig(argv)));
     }
@@ -103,10 +112,12 @@ export class ConfigureModule {
       setLevel('debug');
     }
 
-    const projectPath = path.resolve(
-      config.configDir && !argv.subquery ? config.configDir : '.',
-      config.subquery,
-    );
+    const projectPath = config.ipfs
+      ? argv.subquery
+      : path.resolve(
+          config.configDir && !argv.subquery ? config.configDir : '.',
+          config.subquery,
+        );
 
     const project = async () => {
       const p = await SubqueryProject.create(
@@ -118,6 +129,9 @@ export class ConfigureModule {
           },
           isNil,
         ),
+        {
+          ipfs: config.ipfs,
+        },
       ).catch((err) => {
         logger.error(err, 'Create Subquery project from given path failed!');
         process.exit(1);

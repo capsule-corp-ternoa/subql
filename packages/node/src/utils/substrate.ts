@@ -1,8 +1,9 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import { ApiPromise } from '@polkadot/api';
 import { Option, Vec } from '@polkadot/types';
+import '@polkadot/api-augment/substrate';
 import {
   BlockHash,
   EventRecord,
@@ -22,7 +23,6 @@ import {
 import { last, merge, range } from 'lodash';
 import { BlockContent } from '../indexer/types';
 import { getLogger } from './logger';
-
 const logger = getLogger('fetch');
 
 export function wrapBlock(
