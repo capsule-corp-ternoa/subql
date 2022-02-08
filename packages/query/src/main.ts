@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {NestFactory} from '@nestjs/core';
-import {findAvailablePort} from '@subql/common';
+// import {findAvailablePort} from '@subql/common';
 import {AppModule} from './app.module';
 import {getLogger, NestLogger} from './utils/logger';
 import {getYargsOption} from './yargs';
@@ -20,7 +20,7 @@ void (async () => {
     return isNaN(p) ? null : p;
   };
 
-  const port = validate(process.env.PORT) ?? validate(argv.port) ?? (await findAvailablePort(DEFAULT_PORT));
+  const port = validate(process.env.PORT) ?? validate(argv.port) ?? DEFAULT_PORT//(await findAvailablePort(DEFAULT_PORT));
   if (!port) {
     getLogger('subql-query').error(
       `Unable to find available port (tried ports in range (${DEFAULT_PORT}..${

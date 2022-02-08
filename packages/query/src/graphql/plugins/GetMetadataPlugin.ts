@@ -3,7 +3,7 @@
 
 import assert from 'assert';
 import {URL} from 'url';
-import {MetaData, TableEstimate} from '@subql/common';
+import {MetaData, /*TableEstimate*/} from '@subql/common';
 import {makeExtendSchemaPlugin, gql} from 'graphile-utils';
 import fetch, {Response} from 'node-fetch';
 import {setAsyncInterval} from '../../utils/asyncInterval';
@@ -74,21 +74,21 @@ async function fetchFromTable(pgClient: any, schemaName: string): Promise<MetaDa
 
   metadata.queryNodeVersion = packageVersion;
 
-  const tableEstimates = await pgClient
-    .query(
-      `select relname as table , reltuples::bigint as estimate from pg_class
-      where relnamespace in
-            (select oid from pg_namespace where nspname = $1)
-      and relname in
-          (select table_name from information_schema.tables
-           where table_schema = $1)`,
-      [schemaName]
-    )
-    .catch((e) => {
-      throw new Error(`Unable to estimate table row count: ${e}`);
-    });
+  // const tableEstimates = await pgClient
+  //   .query(
+  //     `select relname as table , reltuples::bigint as estimate from pg_class
+  //     where relnamespace in
+  //           (select oid from pg_namespace where nspname = $1)
+  //     and relname in
+  //         (select table_name from information_schema.tables
+  //          where table_schema = $1)`,
+  //     [schemaName]
+  //   )
+  //   .catch((e) => {
+  //     throw new Error(`Unable to estimate table row count: ${e}`);
+  //   });
 
-  metadata.rowCountEstimate = tableEstimates.rows;
+  // metadata.rowCountEstimate = tableEstimates.rows;
 
   return metadata;
 }
