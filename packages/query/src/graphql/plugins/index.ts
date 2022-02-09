@@ -43,6 +43,7 @@ import PgSimplifyInflectorPlugin from '@graphile-contrib/pg-simplify-inflector';
 import PgManyToManyPlugin from '@graphile-contrib/pg-many-to-many';
 import ConnectionFilterPlugin from 'postgraphile-plugin-connection-filter';
 import { PgDistinct } from './PgDistinct';
+import { PgAggregateTransfer } from './PgAggregateTransfer';
 
 // custom plugins
 import PgConnectionArgFirstLastBeforeAfter from './PgConnectionArgFirstLastBeforeAfter';
@@ -104,6 +105,7 @@ const plugins = [
   PgManyToManyPlugin,
   ConnectionFilterPlugin,
   PgDistinct,
+  PgAggregateTransfer,
   smartTagsPlugin,
   GetMetadataPlugin,
   PgAggregationPlugin,

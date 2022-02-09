@@ -1,27 +1,25 @@
 import {makeExtendSchemaPlugin, gql} from 'graphile-utils';
 
 export const PgDistinct =  makeExtendSchemaPlugin((build) => {
-  // Get any helpers we need from `build`
   const { pgSql: sql, inflection } = build;
-
   return {
     typeDefs: gql`
-        extend type Query {
-            distinctSerieNfts(
-              listed: Int, 
-              owner: String, 
-              marketplaceId: String, 
-              isCapsule: Boolean,
-              priceStartRange: Float,
-              priceEndRange: Float,
-              timestampCreateStartRange: Date,
-              timestampCreateEndRange: Date,
-              priceSortOrder: String,
-              timestampCreateSortOrder: String,
-              listedSortOrder: String,
-              isCapsuleSortOrder: String,
-            ): NftEntitiesConnection
-        }
+      extend type Query {
+        distinctSerieNfts(
+          listed: Int, 
+          owner: String, 
+          marketplaceId: String, 
+          isCapsule: Boolean,
+          priceStartRange: Float,
+          priceEndRange: Float,
+          timestampCreateStartRange: Date,
+          timestampCreateEndRange: Date,
+          priceSortOrder: String,
+          timestampCreateSortOrder: String,
+          listedSortOrder: String,
+          isCapsuleSortOrder: String,
+        ): NftEntitiesConnection
+      }
     `,
     resolvers: {
       Query: {
