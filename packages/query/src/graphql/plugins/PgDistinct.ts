@@ -7,7 +7,8 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
       extend type Query {
         distinctSerieNfts(
           listed: Int, 
-          owner: String, 
+          owner: String,
+          viewer: String,
           marketplaceId: String, 
           isCapsule: Boolean,
           priceStartRange: Float,
@@ -26,6 +27,7 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
         distinctSerieNfts: async (_query, args, context, resolveInfo) => {
           const listed = sql.value(args.listed)
           const owner = sql.value(args.owner)
+          const viewer = sql.value(args.viewer)
           const marketplaceId = sql.value(args.marketplaceId)
           const isCapsule = sql.value(args.isCapsule)
           const priceStartRange = sql.value(args.priceStartRange)
@@ -41,13 +43,14 @@ export const PgDistinct =  makeExtendSchemaPlugin((build) => {
               SELECT DISTINCT ON (serie_id) nft_entities.* 
               FROM subql_ternoa.nft_entities
               WHERE timestamp_burn IS NULL
-              AND serie_id <> '0'
               ${marketplaceId.value !== undefined ? sql.fragment` AND (marketplace_id=${marketplaceId} OR listed=0)` : sql.fragment``}
               ${listed.value === 1 ? sql.fragment` AND listed=1` : sql.fragment``}
               ${listed.value === 0 ? sql.fragment` AND listed=0` : sql.fragment``}
               ${isCapsule.value === true ? sql.fragment` AND is_capsule=true` : sql.fragment``}
               ${isCapsule.value === false ? sql.fragment` AND is_capsule=false` : sql.fragment``}
-              ${owner.value !== undefined ? sql.fragment` AND owner=${owner}` : sql.fragment``}
+              ${owner.value !== undefined && viewer.value !== undefined ? sql.fragment` AND (owner=${owner} OR viewer=${viewer})` : sql.fragment``}
+              ${owner.value !== undefined && viewer.value === undefined ? sql.fragment` AND owner=${owner}` : sql.fragment``}
+              ${viewer.value !== undefined && owner.value === undefined ? sql.fragment` AND viewer=${viewer}` : sql.fragment``}
               ${priceStartRange.value !== undefined ? sql.fragment` AND price_rounded >= ${priceStartRange}` : sql.fragment``}
               ${priceEndRange.value !== undefined ? sql.fragment` AND price_rounded <= ${priceEndRange}` : sql.fragment``}
               ${timestampCreateStartRange.value !== undefined ? sql.fragment` AND timestamp_create >= ${timestampCreateStartRange}` : sql.fragment``}
