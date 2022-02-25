@@ -1,4 +1,4 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 /* class decorator */
@@ -18,7 +18,7 @@ function printCost(
 ): void {
   logger.info(`${target}, ${method}, ${end.getTime() - start.getTime()} ms`);
 }
-export function profiler(enabled: boolean = true): any {
+export function profiler(enabled = true): any {
   return (target: any, name: string, descriptor: PropertyDescriptor): void => {
     if (enabled && !!descriptor && typeof descriptor.value === 'function') {
       const orig = descriptor.value;

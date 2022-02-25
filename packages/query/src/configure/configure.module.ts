@@ -1,4 +1,4 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import {DynamicModule, Global, Module} from '@nestjs/common';
@@ -16,6 +16,7 @@ export class ConfigureModule {
     const config = new Config({
       name: opts.name,
       playground: opts.playground ?? false,
+      unsafe: opts.unsafe ?? false,
     });
 
     const pgPool = new Pool({

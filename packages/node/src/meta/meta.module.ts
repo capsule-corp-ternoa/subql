@@ -1,4 +1,4 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import { Module } from '@nestjs/common';
@@ -6,15 +6,18 @@ import {
   makeGaugeProvider,
   PrometheusModule,
 } from '@willsoto/nestjs-prometheus';
+import { IndexerModule } from '../indexer/indexer.module';
 import { MetricEventListener } from './event.listener';
 import { HealthController } from './health.controller';
 import { HealthService } from './health.service';
 import { MetaController } from './meta.controller';
 import { MetaService } from './meta.service';
+import { ReadyController } from './ready.controller';
+import { ReadyService } from './ready.service';
 
 @Module({
-  imports: [PrometheusModule.register()],
-  controllers: [MetaController, HealthController],
+  imports: [PrometheusModule.register(), IndexerModule],
+  controllers: [MetaController, HealthController, ReadyController],
   providers: [
     MetricEventListener,
     makeGaugeProvider({
@@ -59,6 +62,7 @@ import { MetaService } from './meta.service';
     }),
     MetaService,
     HealthService,
+    ReadyService,
   ],
 })
 export class MetaModule {}

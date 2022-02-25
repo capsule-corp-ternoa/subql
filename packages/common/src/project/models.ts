@@ -1,75 +1,38 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import {RegistryTypes, RegisteredTypes, OverrideModuleType, OverrideBundleType} from '@polkadot/types/types';
+import {RegisteredTypes, RegistryTypes, OverrideModuleType, OverrideBundleType} from '@polkadot/types/types';
+import {
+  CustomDataSourceAsset,
+  FileReference,
+  SubqlBlockFilter,
+  SubqlBlockHandler,
+  SubqlCallFilter,
+  SubqlCallHandler,
+  SubqlCustomDatasource,
+  SubqlCustomHandler,
+  SubqlDatasourceKind,
+  SubqlEventFilter,
+  SubqlEventHandler,
+  SubqlHandler,
+  SubqlHandlerKind,
+  SubqlMapping,
+  SubqlNetworkFilter,
+  SubqlRuntimeDatasource,
+  SubqlRuntimeHandler,
+} from '@subql/types';
 import {plainToClass, Transform, Type} from 'class-transformer';
 import {
-  Allow,
   ArrayMaxSize,
   IsArray,
   IsBoolean,
   IsEnum,
   IsInt,
-  IsObject,
   IsOptional,
   IsString,
+  IsObject,
   ValidateNested,
 } from 'class-validator';
-import {SubqlKind} from './constants';
-import {
-  ProjectManifest,
-  SubqlBlockFilter,
-  SubqlCallFilter,
-  SubqlEventFilter,
-  SubqlNetworkFilter,
-  SubqlHandler,
-  SubqlMapping,
-  SubqlRuntimeDatasource,
-} from './types';
-
-export class ProjectNetwork implements RegisteredTypes {
-  @IsString()
-  endpoint: string;
-  @IsString()
-  @IsOptional()
-  dictionary?: string;
-  @IsObject()
-  @IsOptional()
-  types?: RegistryTypes;
-  @IsObject()
-  @IsOptional()
-  typesAlias?: Record<string, OverrideModuleType>;
-  @IsObject()
-  @IsOptional()
-  typesBundle?: OverrideBundleType;
-  @IsObject()
-  @IsOptional()
-  typesChain?: Record<string, RegistryTypes>;
-  @IsObject()
-  @IsOptional()
-  typesSpec?: Record<string, RegistryTypes>;
-}
-
-export class ProjectManifestImpl implements ProjectManifest {
-  @Allow()
-  definitions: object;
-  @IsString()
-  description: string;
-  @ValidateNested()
-  @Type(() => ProjectNetwork)
-  @IsObject()
-  network: ProjectNetwork;
-  @IsString()
-  repository: string;
-  @IsString()
-  schema: string;
-  @IsString()
-  specVersion: string;
-  @IsArray()
-  @ValidateNested()
-  @Type(() => RuntimeDataSource)
-  dataSources: RuntimeDataSource[];
-}
 
 export class BlockFilter implements SubqlBlockFilter {
   @IsOptional()
@@ -87,9 +50,22 @@ export class EventFilter extends BlockFilter implements SubqlEventFilter {
   method?: string;
 }
 
-export class NetworkFilter implements SubqlNetworkFilter {
-  @IsString()
-  specName: string;
+export class ChainTypes implements RegisteredTypes {
+  @IsObject()
+  @IsOptional()
+  types?: RegistryTypes;
+  @IsObject()
+  @IsOptional()
+  typesAlias?: Record<string, OverrideModuleType>;
+  @IsObject()
+  @IsOptional()
+  typesBundle?: OverrideBundleType;
+  @IsObject()
+  @IsOptional()
+  typesChain?: Record<string, RegistryTypes>;
+  @IsObject()
+  @IsOptional()
+  typesSpec?: Record<string, RegistryTypes>;
 }
 
 export class CallFilter extends EventFilter implements SubqlCallFilter {
@@ -98,51 +74,62 @@ export class CallFilter extends EventFilter implements SubqlCallFilter {
   success?: boolean;
 }
 
-export class BlockHandler {
+export class BlockHandler implements SubqlBlockHandler {
   @IsOptional()
   @ValidateNested()
   @Type(() => BlockFilter)
   filter?: SubqlBlockFilter;
-  @IsEnum(SubqlKind, {groups: [SubqlKind.BlockHandler]})
-  kind: SubqlKind.BlockHandler;
+  @IsEnum(SubqlHandlerKind, {groups: [SubqlHandlerKind.Block]})
+  kind: SubqlHandlerKind.Block;
   @IsString()
   handler: string;
 }
 
-export class CallHandler {
+export class CallHandler implements SubqlCallHandler {
   @IsOptional()
   @ValidateNested()
   @Type(() => CallFilter)
   filter?: SubqlCallFilter;
-  @IsEnum(SubqlKind, {groups: [SubqlKind.CallHandler]})
-  kind: SubqlKind.CallHandler;
+  @IsEnum(SubqlHandlerKind, {groups: [SubqlHandlerKind.Call]})
+  kind: SubqlHandlerKind.Call;
   @IsString()
   handler: string;
 }
 
-export class EventHandler {
+export class EventHandler implements SubqlEventHandler {
   @IsOptional()
   @ValidateNested()
   @Type(() => EventFilter)
   filter?: SubqlEventFilter;
-  @IsEnum(SubqlKind, {groups: [SubqlKind.EventHandler]})
-  kind: SubqlKind.EventHandler;
+  @IsEnum(SubqlHandlerKind, {groups: [SubqlHandlerKind.Event]})
+  kind: SubqlHandlerKind.Event;
   @IsString()
   handler: string;
 }
 
+export class CustomHandler implements SubqlCustomHandler {
+  @IsString()
+  kind: string;
+  @IsString()
+  handler: string;
+  @IsObject()
+  @IsOptional()
+  filter?: Record<string, unknown>;
+}
+
 export class Mapping implements SubqlMapping {
-  @Transform((handlers: SubqlHandler[]) => {
+  @Transform((params) => {
+    const handlers: SubqlHandler[] = params.value;
     return handlers.map((handler) => {
       switch (handler.kind) {
-        case SubqlKind.EventHandler:
+        case SubqlHandlerKind.Event:
           return plainToClass(EventHandler, handler);
-        case SubqlKind.CallHandler:
+        case SubqlHandlerKind.Call:
           return plainToClass(CallHandler, handler);
-        case SubqlKind.BlockHandler:
+        case SubqlHandlerKind.Block:
           return plainToClass(BlockHandler, handler);
         default:
-          throw new Error(`handler ${handler.kind} not supported`);
+          throw new Error(`handler ${(handler as any).kind} not supported`);
       }
     });
   })
@@ -151,19 +138,69 @@ export class Mapping implements SubqlMapping {
   handlers: SubqlHandler[];
 }
 
-export class RuntimeDataSource implements SubqlRuntimeDatasource {
-  @IsEnum(SubqlKind, {groups: [SubqlKind.Runtime]})
-  kind: SubqlKind.Runtime;
+export class CustomMapping implements SubqlMapping<SubqlCustomHandler> {
+  @IsArray()
+  @Type(() => CustomHandler)
+  @ValidateNested()
+  handlers: CustomHandler[];
+  @IsString()
+  file: string;
+}
+
+export class SubqlNetworkFilterImpl implements SubqlNetworkFilter {
+  @IsString()
+  @IsOptional()
+  specName?: string;
+}
+
+export class RuntimeDataSourceBase<M extends SubqlMapping<SubqlRuntimeHandler>> implements SubqlRuntimeDatasource<M> {
+  @IsEnum(SubqlDatasourceKind, {groups: [SubqlDatasourceKind.Runtime]})
+  kind: SubqlDatasourceKind.Runtime;
   @Type(() => Mapping)
   @ValidateNested()
-  mapping: SubqlMapping;
-  @IsString()
-  name: string;
+  mapping: M;
   @IsOptional()
   @IsInt()
   startBlock?: number;
   @IsOptional()
   @ValidateNested()
-  @Type(() => NetworkFilter)
+  @Type(() => SubqlNetworkFilterImpl)
   filter?: SubqlNetworkFilter;
+}
+
+export class FileReferenceImpl implements FileReference {
+  @IsString()
+  file: string;
+}
+
+export class Processor<O = any> extends FileReferenceImpl {
+  @IsOptional()
+  @IsObject()
+  options?: O;
+}
+
+export class CustomDataSourceBase<
+  K extends string,
+  T extends SubqlNetworkFilter,
+  M extends SubqlMapping = SubqlMapping<SubqlCustomHandler>,
+  O = any
+> implements SubqlCustomDatasource<K, T, M, O>
+{
+  @IsString()
+  kind: K;
+  @Type(() => CustomMapping)
+  @ValidateNested()
+  mapping: M;
+  @IsOptional()
+  @IsInt()
+  startBlock?: number;
+  @Type(() => FileReferenceImpl)
+  @ValidateNested({each: true})
+  assets: Map<string, CustomDataSourceAsset>;
+  @Type(() => FileReferenceImpl)
+  @IsObject()
+  processor: FileReference;
+  @IsOptional()
+  @IsObject()
+  filter?: T;
 }

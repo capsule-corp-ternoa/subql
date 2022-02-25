@@ -1,4 +1,4 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 /* eslint-disable */
@@ -42,13 +42,16 @@ import PgConnectionTotalCount from 'graphile-build-pg/node8plus/plugins/PgConnec
 import PgSimplifyInflectorPlugin from '@graphile-contrib/pg-simplify-inflector';
 import PgManyToManyPlugin from '@graphile-contrib/pg-many-to-many';
 import ConnectionFilterPlugin from 'postgraphile-plugin-connection-filter';
-import {argv} from '../../yargs';
-import {GetMetadataPlugin} from './GetMetadataPlugin';
 import { PgDistinct } from './PgDistinct';
+import { PgAggregateTransfer } from './PgAggregateTransfer';
 
 // custom plugins
 import PgConnectionArgFirstLastBeforeAfter from './PgConnectionArgFirstLastBeforeAfter';
 import PgBackwardRelationPlugin from './PgBackwardRelationPlugin';
+import {GetMetadataPlugin} from './GetMetadataPlugin';
+import {smartTagsPlugin} from './smartTagsPlugin';
+import {makeAddInflectorsPlugin} from 'graphile-utils';
+import PgAggregationPlugin from './PgAggregationPlugin';
 
 /* eslint-enable */
 
@@ -95,15 +98,36 @@ export const pgDefaultPlugins = [
   PgConnectionTotalCount,
 ];
 
-export const plugins = [
+const plugins = [
   ...defaultPlugins,
   ...pgDefaultPlugins,
   PgSimplifyInflectorPlugin,
   PgManyToManyPlugin,
   ConnectionFilterPlugin,
   PgDistinct,
+  PgAggregateTransfer,
+  smartTagsPlugin,
+  GetMetadataPlugin,
+  PgAggregationPlugin,
+  makeAddInflectorsPlugin((inflectors) => {
+    const {constantCase: oldConstantCase} = inflectors;
+    const enumValues = new Set();
+    return {
+      enumName: (v: string) => {
+        enumValues.add(v);
+        return v;
+      },
+      constantCase: (v: string) => {
+        // We don't want to change the names of all enum values to CONSTANT CASE
+        // because they could be specified in non CONSTANT CASE in their schema.graphql
+        if (enumValues.has(v)) {
+          return v;
+        } else {
+          return oldConstantCase(v);
+        }
+      },
+    };
+  }, true),
 ];
 
-if (argv(`indexer`)) {
-  plugins.push(GetMetadataPlugin);
-}
+export {plugins};

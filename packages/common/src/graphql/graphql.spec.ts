@@ -1,4 +1,4 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import gql from 'graphql-tag';
@@ -28,7 +28,9 @@ describe('utils that handle schema.graphql', () => {
     const schema = buildSchemaFromDocumentNode(graphqlSchema);
     const entities = getAllEntitiesRelations(schema);
     expect(entities.models).toMatchObject([{name: 'KittyBirthInfo'}]);
-    expect(entities.models[0].fields).toEqual([{isArray: false, name: 'id', nullable: false, type: 'ID'}]);
+    expect(entities.models[0].fields).toEqual([
+      {isArray: false, name: 'id', nullable: false, type: 'ID', isEnum: false},
+    ]);
   });
 
   it('throw error for unsupported types', () => {
@@ -41,16 +43,18 @@ describe('utils that handle schema.graphql', () => {
     expect(() => buildSchemaFromDocumentNode(graphqlSchema)).toThrow();
   });
 
-  it('support Bytes types', () => {
+  it('support Bytes and Float types', () => {
     const graphqlSchema = gql`
       type Test @entity {
         id: ID!
         hash: Bytes
+        rate: Float
       }
     `;
     const schema = buildSchemaFromDocumentNode(graphqlSchema);
     const entities = getAllEntitiesRelations(schema);
     expect(entities.models[0].fields[1].type).toBe('Bytes');
+    expect(entities.models[0].fields[2].type).toBe('Float');
   });
 
   it('throw error for union/enum/interface type', () => {

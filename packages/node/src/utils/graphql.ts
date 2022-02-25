@@ -1,4 +1,4 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import {
@@ -10,35 +10,25 @@ import {
   isBuffer,
   isNull,
 } from '@polkadot/util';
+import { getTypeByScalarName } from '@subql/common';
 import { GraphQLModelsType } from '@subql/common/graphql/types';
-import { ModelAttributes, DataTypes } from 'sequelize';
+import { ModelAttributes } from 'sequelize';
 import { ModelAttributeColumnOptions } from 'sequelize/types/lib/model';
-
-const SEQUELIZE_TYPE_MAPPING = {
-  ID: 'text',
-  Int: 'integer',
-  BigInt: 'numeric',
-  String: 'text',
-  Date: 'timestamp',
-  BigDecimal: 'numeric',
-  Boolean: 'boolean',
-  Bytes: DataTypes.BLOB,
-  Json: DataTypes.JSONB,
-};
 
 export function modelsTypeToModelAttributes(
   modelType: GraphQLModelsType,
+  enums: Map<string, string>,
 ): ModelAttributes<any> {
   const fields = modelType.fields;
   return Object.values(fields).reduce((acc, field) => {
-    let allowNull = true;
-    if (!field.nullable) {
-      allowNull = false;
-    }
+    const allowNull = field.nullable;
     const columnOption: ModelAttributeColumnOptions<any> = {
-      type: field.isArray
-        ? SEQUELIZE_TYPE_MAPPING.Json
-        : SEQUELIZE_TYPE_MAPPING[field.type],
+      type: field.isEnum
+        ? `${enums.get(field.type)}${field.isArray ? '[]' : ''}`
+        : field.isArray
+        ? getTypeByScalarName('Json').sequelizeType
+        : getTypeByScalarName(field.type).sequelizeType,
+      comment: field.description,
       allowNull,
       primaryKey: field.type === 'ID',
     };
@@ -80,8 +70,4 @@ export function modelsTypeToModelAttributes(
     acc[field.name] = columnOption;
     return acc;
   }, {} as ModelAttributes<any>);
-}
-
-export function isBasicType(t: string): boolean {
-  return Object.keys(SEQUELIZE_TYPE_MAPPING).findIndex((k) => k === t) >= 0;
 }

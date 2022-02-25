@@ -1,4 +1,4 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
@@ -16,7 +16,7 @@ export class HealthController {
     try {
       this.healthService.getHealth();
     } catch (e) {
-      logger.error(e, e.message);
+      logger.error(e.message);
       throw new HttpException(
         {
           status: HttpStatus.INTERNAL_SERVER_ERROR,

@@ -1,4 +1,4 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import { OnEvent } from '@nestjs/event-emitter';
@@ -61,10 +61,6 @@ export class MetricEventListener {
   @OnEvent(IndexerEvent.BlockProcessing)
   handleProcessingBlock(blockPayload: ProcessBlockPayload) {
     this.processingBlockHeight.set(blockPayload.height);
-  }
-  @OnEvent(IndexerEvent.BlockLastProcessed)
-  handleProcessedBlock(blockPayload: ProcessBlockPayload) {
-    this.processedBlockHeight.set(blockPayload.height);
   }
 
   @OnEvent(IndexerEvent.BlockTarget)
