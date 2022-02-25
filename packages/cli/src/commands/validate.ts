@@ -1,21 +1,25 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import {Command, flags} from '@oclif/command';
-import {commonRules, Validator} from '@subql/validator';
+import {Validator, commonRules} from '@subql/validator';
 import chalk from 'chalk';
 
 export default class Validate extends Command {
-  static description = 'check a folder or github repo is a validate subquery project';
+  static description = 'Check a folder or github repo is a validate subquery project';
 
   static flags = {
-    location: flags.string({char: 'l', description: 'local folder or github repo url'}),
+    location: flags.string({char: 'l', description: 'local folder, github repo url or IPFS cid'}),
+    ipfs: flags.string({
+      description: 'IPFS gateway endpoint, used for validating projects on IPFS',
+      default: 'https://ipfs.thechainhub.com/api/v0',
+    }),
     silent: flags.boolean(),
   };
 
   async run(): Promise<void> {
     const {flags} = this.parse(Validate);
-    const v = new Validator(flags.location ?? process.cwd());
+    const v = await Validator.create(flags.location ?? process.cwd(), {ipfs: flags.ipfs});
     v.addRule(...commonRules);
 
     const reports = await v.getValidateReports();

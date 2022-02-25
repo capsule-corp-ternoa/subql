@@ -1,8 +1,9 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { Interval } from '@nestjs/schedule';
 import {
   BestBlockPayload,
   EventPayload,
@@ -11,6 +12,9 @@ import {
   ProcessBlockPayload,
   TargetBlockPayload,
 } from '../indexer/events';
+import { StoreService } from '../indexer/store.service';
+
+const UPDATE_HEIGHT_INTERVAL = 60000;
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version: polkadotSdkVersion } = require('@polkadot/api/package.json');
@@ -28,6 +32,8 @@ export class MetaService {
   private injectedApiConnected: boolean;
   private lastProcessedHeight: number;
   private lastProcessedTimestamp: number;
+
+  constructor(private storeService: StoreService) {}
 
   getMeta() {
     return {
@@ -47,16 +53,15 @@ export class MetaService {
     };
   }
 
+  @Interval(UPDATE_HEIGHT_INTERVAL)
+  async getTargetHeight(): Promise<void> {
+    await this.storeService.setMetadata('targetHeight', this.targetHeight);
+  }
+
   @OnEvent(IndexerEvent.BlockProcessing)
   handleProcessingBlock(blockPayload: ProcessBlockPayload): void {
     this.currentProcessingHeight = blockPayload.height;
     this.currentProcessingTimestamp = blockPayload.timestamp;
-  }
-
-  @OnEvent(IndexerEvent.BlockLastProcessed)
-  handleLastProcessedBlock(blockPayload: ProcessBlockPayload): void {
-    this.lastProcessedHeight = blockPayload.height;
-    this.lastProcessedTimestamp = blockPayload.timestamp;
   }
 
   @OnEvent(IndexerEvent.BlockTarget)
@@ -75,17 +80,17 @@ export class MetaService {
   }
 
   @OnEvent(IndexerEvent.ApiConnected)
-  handleApiConnected({ value }: EventPayload<number>) {
+  handleApiConnected({ value }: EventPayload<number>): void {
     this.apiConnected = !!value;
   }
 
   @OnEvent(IndexerEvent.InjectedApiConnected)
-  handleInjectedApiConnected({ value }: EventPayload<number>) {
+  handleInjectedApiConnected({ value }: EventPayload<number>): void {
     this.injectedApiConnected = !!value;
   }
 
   @OnEvent(IndexerEvent.UsingDictionary)
-  handleUsingDictionary({ value }: EventPayload<number>) {
+  handleUsingDictionary({ value }: EventPayload<number>): void {
     this.usingDictionary = !!value;
   }
 }

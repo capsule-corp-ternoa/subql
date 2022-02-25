@@ -1,14 +1,19 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import {Module, OnModuleDestroy, OnModuleInit} from '@nestjs/common';
 import {HttpAdapterHost} from '@nestjs/core';
+import {
+  ApolloServerPluginCacheControl,
+  ApolloServerPluginLandingPageDisabled,
+  ApolloServerPluginLandingPageGraphQLPlayground,
+} from 'apollo-server-core';
 import {ApolloServer} from 'apollo-server-express';
 import ExpressPinoLogger from 'express-pino-logger';
 import {Pool} from 'pg';
 import {getPostGraphileBuilder} from 'postgraphile-core';
 import {Config} from '../configure';
-import {getLogger} from '../utils/logger';
+import {PinoConfig} from '../utils/logger';
 import {plugins} from './plugins';
 import {ProjectService} from './project.service';
 
@@ -53,29 +58,26 @@ export class GraphqlModule implements OnModuleInit, OnModuleDestroy {
       context: {
         pgClient: this.pgPool,
       },
-      cacheControl: {
-        defaultMaxAge: 5,
-      },
+      plugins: [
+        ApolloServerPluginCacheControl({
+          defaultMaxAge: 5,
+          calculateHttpHeaders: true,
+        }),
+        this.config.get('playground')
+          ? ApolloServerPluginLandingPageGraphQLPlayground()
+          : ApolloServerPluginLandingPageDisabled(),
+      ],
       debug: this.config.get('NODE_ENV') !== 'production',
-      playground: this.config.get('playground'),
-      subscriptions: {
-        path: '/subscription',
-      },
     });
-    app.use(
-      ExpressPinoLogger({
-        logger: getLogger('express'),
-        autoLogging: {
-          ignorePaths: ['/.well-known/apollo/server-health'],
-        },
-      })
-    );
+
+    app.use(ExpressPinoLogger(PinoConfig));
+
+    await server.start();
     server.applyMiddleware({
       app,
       path: '/',
       cors: true,
     });
-    server.installSubscriptionHandlers(httpServer);
 
     return server;
   }

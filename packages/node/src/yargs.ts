@@ -1,7 +1,6 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { argv as yargv } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
 
@@ -11,10 +10,11 @@ export function getYargsOption() {
     subquery: {
       alias: 'f',
       demandOption: false,
-      describe: 'Local path of the subquery project',
+      describe: 'Local path or IPFS cid of the subquery project',
       type: 'string',
     },
     'subquery-name': {
+      deprecated: true,
       demandOption: false,
       describe: 'Name of the subquery project',
       type: 'string',
@@ -26,14 +26,36 @@ export function getYargsOption() {
       type: 'string',
     },
     local: {
+      deprecated: true,
       type: 'boolean',
       demandOption: false,
       describe: 'Use local mode',
+    },
+    'force-clean': {
+      type: 'boolean',
+      demandOption: false,
+      describe: 'Force clean the database, dropping project schemas and tables',
+    },
+    'db-schema': {
+      demandOption: false,
+      describe: 'Db schema name of the project',
+      type: 'string',
+    },
+    unsafe: {
+      type: 'boolean',
+      demandOption: false,
+      describe: 'Allows usage of any built-in module within the sandbox',
     },
     'batch-size': {
       demandOption: false,
       describe: 'Batch size of blocks to fetch in one round',
       type: 'number',
+    },
+    'scale-batch-size': {
+      type: 'boolean',
+      demandOption: false,
+      describe: 'scale batch size based on memory usage',
+      default: false,
     },
     timeout: {
       demandOption: false,
@@ -80,13 +102,36 @@ export function getYargsOption() {
       demandOption: false,
       describe: 'Enable/disable created_at and updated_at in schema',
       type: 'boolean',
-      default: true,
+      default: false,
     },
     'network-dictionary': {
       alias: 'd',
       demandOption: false,
       describe: 'Specify the dictionary api for this network',
       type: 'string',
+    },
+    'mmr-path': {
+      alias: 'm',
+      demandOption: false,
+      describe: 'Local path of the merkle mountain range (.mmr) file',
+      type: 'string',
+    },
+    'proof-of-index': {
+      demandOption: false,
+      describe: 'Enable/disable proof of index',
+      type: 'boolean',
+      default: false,
+    },
+    ipfs: {
+      demandOption: false,
+      describe: 'IPFS gateway endpoint',
+      type: 'string',
+    },
+    port: {
+      alias: 'p',
+      demandOption: false,
+      describe: 'The port the service will bind to',
+      type: 'number',
     },
   });
 }

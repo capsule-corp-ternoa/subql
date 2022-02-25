@@ -1,12 +1,20 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import assert from 'assert';
 import { Injectable } from '@nestjs/common';
-import { GraphQLModelsRelations } from '@subql/common/graphql/types';
+import { hexToU8a, u8aToBuffer } from '@polkadot/util';
+import { blake2AsHex } from '@polkadot/util-crypto';
+import { GraphQLModelsRelationsEnums } from '@subql/common/graphql/types';
 import { Entity, Store } from '@subql/types';
-import { flatten, camelCase, upperFirst } from 'lodash';
-import { QueryTypes, Sequelize, Transaction, Utils } from 'sequelize';
+import { camelCase, flatten, upperFirst, isEqual } from 'lodash';
+import {
+  QueryTypes,
+  Sequelize,
+  Transaction,
+  UpsertOptions,
+  Utils,
+} from 'sequelize';
 import { NodeConfig } from '../configure/NodeConfig';
 import { modelsTypeToModelAttributes } from '../utils/graphql';
 import { getLogger } from '../utils/logger';
@@ -17,8 +25,17 @@ import {
   getFkConstraint,
   smartTags,
 } from '../utils/sync-helper';
-
+import {
+  Metadata,
+  MetadataFactory,
+  MetadataRepo,
+} from './entities/Metadata.entity';
+import { PoiFactory, PoiRepo, ProofOfIndex } from './entities/Poi.entity';
+import { PoiService } from './poi.service';
+import { StoreOperations } from './StoreOperations';
+import { OperationType } from './types';
 const logger = getLogger('store');
+const NULL_MERKEL_ROOT = hexToU8a('0x00');
 
 interface IndexField {
   entityName: string;
@@ -32,12 +49,19 @@ export class StoreService {
   private tx?: Transaction;
   private modelIndexedFields: IndexField[];
   private schema: string;
-  private modelsRelations: GraphQLModelsRelations;
+  private modelsRelations: GraphQLModelsRelationsEnums;
+  private poiRepo: PoiRepo;
+  private metaDataRepo: MetadataRepo;
+  private operationStack: StoreOperations;
 
-  constructor(private sequelize: Sequelize, private config: NodeConfig) {}
+  constructor(
+    private sequelize: Sequelize,
+    private config: NodeConfig,
+    private poiService: PoiService,
+  ) {}
 
   async init(
-    modelsRelations: GraphQLModelsRelations,
+    modelsRelations: GraphQLModelsRelationsEnums,
     schema: string,
   ): Promise<void> {
     this.schema = schema;
@@ -57,8 +81,59 @@ export class StoreService {
   }
 
   async syncSchema(schema: string): Promise<void> {
+    const enumTypeMap = new Map<string, string>();
+
+    for (const e of this.modelsRelations.enums) {
+      // We shouldn't set the typename to e.name because it could potentially create SQL injection,
+      // using a replacement at the type name location doesn't work.
+      const enumTypeName = `${schema}_enum_${this.enumNameToHash(e.name)}`;
+
+      const [results] = await this.sequelize.query(
+        `select e.enumlabel as enum_value
+         from pg_type t
+         join pg_enum e on t.oid = e.enumtypid
+         where t.typname = ?;`,
+        { replacements: [enumTypeName] },
+      );
+
+      if (results.length === 0) {
+        await this.sequelize.query(
+          `CREATE TYPE "${enumTypeName}" as ENUM (${e.values
+            .map(() => '?')
+            .join(',')});`,
+          {
+            replacements: e.values,
+          },
+        );
+      } else {
+        const currentValues = results.map((v: any) => v.enum_value);
+        // Assert the existing enum is same
+
+        // Make it a function to not execute potentially big joins unless needed
+        if (!isEqual(e.values, currentValues)) {
+          throw new Error(
+            `\n * Can't modify enum "${
+              e.name
+            }" between runs: \n * Before: [${currentValues.join(
+              `,`,
+            )}] \n * After : [${e.values.join(
+              ',',
+            )}] \n * You must rerun the project to do such a change`,
+          );
+        }
+      }
+
+      const comment = `@enum\\n@enumName ${e.name}${
+        e.description ? `\\n ${e.description}` : ''
+      }`;
+
+      await this.sequelize.query(`COMMENT ON TYPE "${enumTypeName}" IS E?`, {
+        replacements: [comment],
+      });
+      enumTypeMap.set(e.name, `"${enumTypeName}"`);
+    }
     for (const model of this.modelsRelations.models) {
-      const attributes = modelsTypeToModelAttributes(model);
+      const attributes = modelsTypeToModelAttributes(model, enumTypeMap);
       const indexes = model.indexes.map(({ fields, unique, using }) => ({
         fields: fields.map((field) => Utils.underscoredIf(field, true)),
         unique,
@@ -69,6 +144,7 @@ export class StoreService {
       }
       this.sequelize.define(model.name, attributes, {
         underscored: true,
+        comment: model.description,
         freezeTableName: false,
         createdAt: this.config.timestampField,
         updatedAt: this.config.timestampField,
@@ -98,7 +174,7 @@ export class StoreService {
           });
           extraQueries.push(
             commentConstraintQuery(
-              `${schema}.${rel.target.tableName}`,
+              `"${schema}"."${rel.target.tableName}"`,
               fkConstraint,
               tags,
             ),
@@ -123,7 +199,7 @@ export class StoreService {
           });
           extraQueries.push(
             commentConstraintQuery(
-              `${schema}.${rel.target.tableName}`,
+              `"${schema}"."${rel.target.tableName}"`,
               fkConstraint,
               tags,
             ),
@@ -135,15 +211,65 @@ export class StoreService {
           throw new Error('Relation type is not supported');
       }
     }
+    if (this.config.proofOfIndex) {
+      this.poiRepo = PoiFactory(this.sequelize, schema);
+    }
+    this.metaDataRepo = MetadataFactory(this.sequelize, schema);
+
     await this.sequelize.sync();
     for (const query of extraQueries) {
       await this.sequelize.query(query);
     }
   }
 
-  setTransaction(tx: Transaction) {
+  enumNameToHash(enumName: string): string {
+    return blake2AsHex(enumName).substr(2, 10);
+  }
+
+  setTransaction(tx: Transaction): void {
     this.tx = tx;
     tx.afterCommit(() => (this.tx = undefined));
+    if (this.config.proofOfIndex) {
+      this.operationStack = new StoreOperations(this.modelsRelations.models);
+    }
+  }
+
+  async setMetadataBatch(
+    metadata: Metadata[],
+    options?: UpsertOptions<Metadata>,
+  ): Promise<void> {
+    await Promise.all(
+      metadata.map(({ key, value }) => this.setMetadata(key, value, options)),
+    );
+  }
+
+  async setMetadata(
+    key: string,
+    value: string | number | boolean,
+    options?: UpsertOptions<Metadata>,
+  ): Promise<void> {
+    assert(this.metaDataRepo, `Model _metadata does not exist`);
+    await this.metaDataRepo.upsert({ key, value }, options);
+  }
+
+  async setPoi(
+    blockPoi: ProofOfIndex,
+    options?: UpsertOptions<ProofOfIndex>,
+  ): Promise<void> {
+    assert(this.poiRepo, `Model _poi does not exist`);
+    blockPoi.chainBlockHash = u8aToBuffer(blockPoi.chainBlockHash);
+    blockPoi.hash = u8aToBuffer(blockPoi.hash);
+    blockPoi.parentHash = u8aToBuffer(blockPoi.parentHash);
+    await this.poiRepo.upsert(blockPoi, options);
+  }
+
+  getOperationMerkleRoot(): Uint8Array {
+    this.operationStack.makeOperationMerkleTree();
+    const merkelRoot = this.operationStack.getOperationMerkleRoot();
+    if (merkelRoot === null) {
+      return NULL_MERKEL_ROOT;
+    }
+    return merkelRoot;
   }
 
   private async getAllIndexFields(schema: string) {
@@ -256,15 +382,31 @@ group by
         });
         return record?.toJSON() as Entity;
       },
-      set: async (entity: string, id: string, data: Entity): Promise<void> => {
+      set: async (entity: string, _id: string, data: Entity): Promise<void> => {
         const model = this.sequelize.model(entity);
         assert(model, `model ${entity} not exists`);
         await model.upsert(data, { transaction: this.tx });
+        if (this.config.proofOfIndex) {
+          this.operationStack.put(OperationType.Set, entity, data);
+        }
+      },
+      bulkCreate: async (entity: string, data: Entity[]): Promise<void> => {
+        const model = this.sequelize.model(entity);
+        assert(model, `model ${entity} not exists`);
+        await model.bulkCreate(data, { transaction: this.tx });
+        if (this.config.proofOfIndex) {
+          for (const item of data) {
+            this.operationStack.put(OperationType.Set, entity, item);
+          }
+        }
       },
       remove: async (entity: string, id: string): Promise<void> => {
         const model = this.sequelize.model(entity);
         assert(model, `model ${entity} not exists`);
         await model.destroy({ where: { id }, transaction: this.tx });
+        if (this.config.proofOfIndex) {
+          this.operationStack.put(OperationType.Remove, entity, id);
+        }
       },
     };
   }

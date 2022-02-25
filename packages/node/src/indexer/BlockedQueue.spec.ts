@@ -1,4 +1,4 @@
-// Copyright 2020-2021 OnFinality Limited authors & contributors
+// Copyright 2020-2022 OnFinality Limited authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import { range } from 'lodash';
@@ -58,16 +58,7 @@ describe('BlockedQueue', () => {
       queue.put(i);
     }
     await expect(queue.takeAll()).resolves.toEqual([
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
     ]);
   });
 
