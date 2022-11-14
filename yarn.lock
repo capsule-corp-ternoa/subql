@@ -3649,6 +3649,28 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@subql/common@npm:0.15.0":
+  version: 0.15.0
+  resolution: "@subql/common@npm:0.15.0"
+  dependencies:
+    "@polkadot/util": ^8
+    "@subql/types": 0.12.0
+    "@subql/x-vm2": ^3.9.3-0.1.0
+    bn.js: 4.11.6
+    class-transformer: 0.4.0
+    class-validator: ^0.13.1
+    flatted: ^3.2.2
+    graphql: ^15.7.2
+    graphql-tag: ^2.12.5
+    js-yaml: ^4.1.0
+    pino: ^6.13.3
+    reflect-metadata: ^0.1.13
+    rotating-file-stream: ^3.0.2
+    sequelize: ^6.6.2
+  checksum: df1076128190cdff8a8d4b7cd5872fcc3b9bf18c744a408ecd6d7328cbdbff9d2df6393d1d4a1f55426658a26969c6a905a784e8fdf5e3e290231ba67a2c9aee
+  languageName: node
+  linkType: hard
+
 "@subql/common@workspace:*, @subql/common@workspace:packages/common":
   version: 0.0.0-use.local
   resolution: "@subql/common@workspace:packages/common"
@@ -3754,7 +3776,7 @@ __metadata:
     "@nestjs/platform-express": ^8.1.2
     "@nestjs/schematics": ^8.0.4
     "@nestjs/testing": ^8.1.2
-    "@subql/common": "workspace:*"
+    "@subql/common": 0.15.0
     "@types/express": ^4.17.13
     "@types/express-pino-logger": ^4.0.2
     "@types/jest": ^27.0.2
@@ -3781,6 +3803,15 @@ __metadata:
     subql-query: ./bin/run
   languageName: unknown
   linkType: soft
+
+"@subql/types@npm:0.12.0":
+  version: 0.12.0
+  resolution: "@subql/types@npm:0.12.0"
+  peerDependencies:
+    "@polkadot/api": ^6
+  checksum: 19b46a9788d4b415e1d89fb044d9490936e96ed8b798b5defac68fa89a9ee0ac7d1638d07c836c14e79bf3ce0787a1a6220874a34a7be865b071daae889e9da4
+  languageName: node
+  linkType: hard
 
 "@subql/types@workspace:*, @subql/types@workspace:packages/types":
   version: 0.0.0-use.local
@@ -11340,13 +11371,13 @@ fsevents@~2.3.1:
   linkType: hard
 
 "loader-utils@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "loader-utils@npm:1.4.0"
+  version: 1.4.2
+  resolution: "loader-utils@npm:1.4.2"
   dependencies:
     big.js: ^5.2.2
     emojis-list: ^3.0.0
     json5: ^1.0.1
-  checksum: d150b15e7a42ac47d935c8b484b79e44ff6ab4c75df7cc4cb9093350cf014ec0b17bdb60c5d6f91a37b8b218bd63b973e263c65944f58ca2573e402b9a27e717
+  checksum: eb6fb622efc0ffd1abdf68a2022f9eac62bef8ec599cf8adb75e94d1d338381780be6278534170e99edc03380a6d29bc7eb1563c89ce17c5fed3a0b17f1ad804
   languageName: node
   linkType: hard
 
