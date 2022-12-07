@@ -3637,7 +3637,7 @@ __metadata:
     inquirer-autocomplete-prompt: ^1.4.0
     ipfs-http-client: ^52.0.5
     rimraf: ^3.0.2
-    simple-git: ^2.47.0
+    simple-git: ^3.15.0
     ts-loader: ^9.2.6
     tslib: ^2.3.1
     webpack: ^5.61.0
@@ -3648,6 +3648,28 @@ __metadata:
     subql: ./bin/run
   languageName: unknown
   linkType: soft
+
+"@subql/common@npm:0.15.0":
+  version: 0.15.0
+  resolution: "@subql/common@npm:0.15.0"
+  dependencies:
+    "@polkadot/util": ^8
+    "@subql/types": 0.12.0
+    "@subql/x-vm2": ^3.9.3-0.1.0
+    bn.js: 4.11.6
+    class-transformer: 0.4.0
+    class-validator: ^0.13.1
+    flatted: ^3.2.2
+    graphql: ^15.7.2
+    graphql-tag: ^2.12.5
+    js-yaml: ^4.1.0
+    pino: ^6.13.3
+    reflect-metadata: ^0.1.13
+    rotating-file-stream: ^3.0.2
+    sequelize: ^6.6.2
+  checksum: df1076128190cdff8a8d4b7cd5872fcc3b9bf18c744a408ecd6d7328cbdbff9d2df6393d1d4a1f55426658a26969c6a905a784e8fdf5e3e290231ba67a2c9aee
+  languageName: node
+  linkType: hard
 
 "@subql/common@workspace:*, @subql/common@workspace:packages/common":
   version: 0.0.0-use.local
@@ -3754,7 +3776,7 @@ __metadata:
     "@nestjs/platform-express": ^8.1.2
     "@nestjs/schematics": ^8.0.4
     "@nestjs/testing": ^8.1.2
-    "@subql/common": "workspace:*"
+    "@subql/common": 0.15.0
     "@types/express": ^4.17.13
     "@types/express-pino-logger": ^4.0.2
     "@types/jest": ^27.0.2
@@ -3781,6 +3803,15 @@ __metadata:
     subql-query: ./bin/run
   languageName: unknown
   linkType: soft
+
+"@subql/types@npm:0.12.0":
+  version: 0.12.0
+  resolution: "@subql/types@npm:0.12.0"
+  peerDependencies:
+    "@polkadot/api": ^6
+  checksum: 19b46a9788d4b415e1d89fb044d9490936e96ed8b798b5defac68fa89a9ee0ac7d1638d07c836c14e79bf3ce0787a1a6220874a34a7be865b071daae889e9da4
+  languageName: node
+  linkType: hard
 
 "@subql/types@workspace:*, @subql/types@workspace:packages/types":
   version: 0.0.0-use.local
@@ -7020,6 +7051,18 @@ __metadata:
   dependencies:
     ms: ^2.1.1
   checksum: b3d8c5940799914d30314b7c3304a43305fd0715581a919dacb8b3176d024a782062368405b47491516d2091d6462d4d11f2f4974a405048094f8bfebfa3071c
+  languageName: node
+  linkType: hard
+
+"debug@npm:^4.3.4":
+  version: 4.3.4
+  resolution: "debug@npm:4.3.4"
+  dependencies:
+    ms: 2.1.2
+  peerDependenciesMeta:
+    supports-color:
+      optional: true
+  checksum: 3dbad3f94ea64f34431a9cbf0bafb61853eda57bff2880036153438f50fb5a84f27683ba0d8e5426bf41a8c6ff03879488120cf5b3a761e77953169c0600a708
   languageName: node
   linkType: hard
 
@@ -14210,14 +14253,14 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"simple-git@npm:^2.47.0":
-  version: 2.47.0
-  resolution: "simple-git@npm:2.47.0"
+"simple-git@npm:^3.15.0":
+  version: 3.15.1
+  resolution: "simple-git@npm:3.15.1"
   dependencies:
     "@kwsites/file-exists": ^1.1.1
     "@kwsites/promise-deferred": ^1.1.1
-    debug: ^4.3.2
-  checksum: 0fefd12a2aaec9b27bcd13e713991769cab3eb185fcf0ad3e1afff17d34c63a7dbb80c4acd3220b2d9522dd9d171f84b237e6dedb4e17545c8bb7aadf746efb9
+    debug: ^4.3.4
+  checksum: 2b97c3ba3c0709eded408013336bf1822be4171d965f3ab45f5bfc05ec690f9e488e11280bec8e2faa05d3039c4769e9d8197040a48dc5cf21cc5c7fa22fe77f
   languageName: node
   linkType: hard
 
