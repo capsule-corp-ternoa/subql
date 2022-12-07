@@ -3649,6 +3649,28 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@subql/common@npm:0.15.0":
+  version: 0.15.0
+  resolution: "@subql/common@npm:0.15.0"
+  dependencies:
+    "@polkadot/util": ^8
+    "@subql/types": 0.12.0
+    "@subql/x-vm2": ^3.9.3-0.1.0
+    bn.js: 4.11.6
+    class-transformer: 0.4.0
+    class-validator: ^0.13.1
+    flatted: ^3.2.2
+    graphql: ^15.7.2
+    graphql-tag: ^2.12.5
+    js-yaml: ^4.1.0
+    pino: ^6.13.3
+    reflect-metadata: ^0.1.13
+    rotating-file-stream: ^3.0.2
+    sequelize: ^6.6.2
+  checksum: df1076128190cdff8a8d4b7cd5872fcc3b9bf18c744a408ecd6d7328cbdbff9d2df6393d1d4a1f55426658a26969c6a905a784e8fdf5e3e290231ba67a2c9aee
+  languageName: node
+  linkType: hard
+
 "@subql/common@workspace:*, @subql/common@workspace:packages/common":
   version: 0.0.0-use.local
   resolution: "@subql/common@workspace:packages/common"
@@ -3754,7 +3776,7 @@ __metadata:
     "@nestjs/platform-express": ^8.1.2
     "@nestjs/schematics": ^8.0.4
     "@nestjs/testing": ^8.1.2
-    "@subql/common": "workspace:*"
+    "@subql/common": 0.15.0
     "@types/express": ^4.17.13
     "@types/express-pino-logger": ^4.0.2
     "@types/jest": ^27.0.2
@@ -3781,6 +3803,15 @@ __metadata:
     subql-query: ./bin/run
   languageName: unknown
   linkType: soft
+
+"@subql/types@npm:0.12.0":
+  version: 0.12.0
+  resolution: "@subql/types@npm:0.12.0"
+  peerDependencies:
+    "@polkadot/api": ^6
+  checksum: 19b46a9788d4b415e1d89fb044d9490936e96ed8b798b5defac68fa89a9ee0ac7d1638d07c836c14e79bf3ce0787a1a6220874a34a7be865b071daae889e9da4
+  languageName: node
+  linkType: hard
 
 "@subql/types@workspace:*, @subql/types@workspace:packages/types":
   version: 0.0.0-use.local
@@ -13304,9 +13335,9 @@ fsevents@~2.3.1:
   linkType: hard
 
 "qs@npm:~6.5.2":
-  version: 6.5.2
-  resolution: "qs@npm:6.5.2"
-  checksum: 24af7b9928ba2141233fba2912876ff100403dba1b08b20c3b490da9ea6c636760445ea2211a079e7dfa882a5cf8f738337b3748c8bdd0f93358fa8881d2db8f
+  version: 6.5.3
+  resolution: "qs@npm:6.5.3"
+  checksum: 6f20bf08cabd90c458e50855559539a28d00b2f2e7dddcb66082b16a43188418cb3cb77cbd09268bcef6022935650f0534357b8af9eeb29bf0f27ccb17655692
   languageName: node
   linkType: hard
 
