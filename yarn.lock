@@ -3649,6 +3649,28 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@subql/common@npm:0.15.0":
+  version: 0.15.0
+  resolution: "@subql/common@npm:0.15.0"
+  dependencies:
+    "@polkadot/util": ^8
+    "@subql/types": 0.12.0
+    "@subql/x-vm2": ^3.9.3-0.1.0
+    bn.js: 4.11.6
+    class-transformer: 0.4.0
+    class-validator: ^0.13.1
+    flatted: ^3.2.2
+    graphql: ^15.7.2
+    graphql-tag: ^2.12.5
+    js-yaml: ^4.1.0
+    pino: ^6.13.3
+    reflect-metadata: ^0.1.13
+    rotating-file-stream: ^3.0.2
+    sequelize: ^6.6.2
+  checksum: df1076128190cdff8a8d4b7cd5872fcc3b9bf18c744a408ecd6d7328cbdbff9d2df6393d1d4a1f55426658a26969c6a905a784e8fdf5e3e290231ba67a2c9aee
+  languageName: node
+  linkType: hard
+
 "@subql/common@workspace:*, @subql/common@workspace:packages/common":
   version: 0.0.0-use.local
   resolution: "@subql/common@workspace:packages/common"
@@ -3663,7 +3685,7 @@ __metadata:
     "@types/tar": ^4.0.4
     bn.js: 4.11.6
     class-transformer: 0.4.0
-    class-validator: ^0.13.1
+    class-validator: ^0.14.0
     detect-port: ^1.3.0
     flatted: ^3.2.2
     graphql: ^15.7.2
@@ -3684,7 +3706,7 @@ __metadata:
   dependencies:
     "@subql/types": "workspace:*"
     class-transformer: 0.4.0
-    class-validator: ^0.13.1
+    class-validator: ^0.14.0
     ethers: ^5.5.1
     moonbeam-types-bundle: ^2.0.3
   peerDependencies:
@@ -3754,7 +3776,7 @@ __metadata:
     "@nestjs/platform-express": ^8.1.2
     "@nestjs/schematics": ^8.0.4
     "@nestjs/testing": ^8.1.2
-    "@subql/common": "workspace:*"
+    "@subql/common": 0.15.0
     "@types/express": ^4.17.13
     "@types/express-pino-logger": ^4.0.2
     "@types/jest": ^27.0.2
@@ -3781,6 +3803,15 @@ __metadata:
     subql-query: ./bin/run
   languageName: unknown
   linkType: soft
+
+"@subql/types@npm:0.12.0":
+  version: 0.12.0
+  resolution: "@subql/types@npm:0.12.0"
+  peerDependencies:
+    "@polkadot/api": ^6
+  checksum: 19b46a9788d4b415e1d89fb044d9490936e96ed8b798b5defac68fa89a9ee0ac7d1638d07c836c14e79bf3ce0787a1a6220874a34a7be865b071daae889e9da4
+  languageName: node
+  linkType: hard
 
 "@subql/types@workspace:*, @subql/types@workspace:packages/types":
   version: 0.0.0-use.local
@@ -4523,6 +4554,13 @@ __metadata:
   version: 13.1.3
   resolution: "@types/validator@npm:13.1.3"
   checksum: 3ffecee869a8bfef7e9cda47bc37e7e074c2b1e1ab90dfabf345ee7e15818bd3272b575afe490b096b597d22c3a7a4ce0d3708d59cadd368f63f443cdb13c66d
+  languageName: node
+  linkType: hard
+
+"@types/validator@npm:^13.7.10":
+  version: 13.7.10
+  resolution: "@types/validator@npm:13.7.10"
+  checksum: 7b142c08019f484d62c9f3074231f640c24311558f157dd253a60810dd0cb29e41ec64ca210a192b54f6de51f4fe016bfeb2c30f90fa49c9337ed54a9d8e02aa
   languageName: node
   linkType: hard
 
@@ -6376,6 +6414,17 @@ __metadata:
     libphonenumber-js: ^1.9.7
     validator: ^13.5.2
   checksum: 1d77f869792e83baef67d18220baf1e1a413a43efbd454ed359e0da691462e6d7d869e73de3ce5bb4a67206084338e5e4323e9e54dd8bc967c6fadb4e9ac44c2
+  languageName: node
+  linkType: hard
+
+"class-validator@npm:^0.14.0":
+  version: 0.14.0
+  resolution: "class-validator@npm:0.14.0"
+  dependencies:
+    "@types/validator": ^13.7.10
+    libphonenumber-js: ^1.10.14
+    validator: ^13.7.0
+  checksum: f62e4a0ad24cee68f4b2bc70d32b96de90cb598f96bde362b4dbf4234151af8eb6ae225458312a38fc49fa3959844cf61c60e731a8205e9a570454cff8de2710
   languageName: node
   linkType: hard
 
@@ -11265,6 +11314,13 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
+"libphonenumber-js@npm:^1.10.14":
+  version: 1.10.18
+  resolution: "libphonenumber-js@npm:1.10.18"
+  checksum: df0a4b8adfb79666636913f6da730ffc3bc037094e35be492d2f7a23ef26754d65a7afa5f64e04f5c5c2883193fa10bd4bea966fd28edcf0c72ddd13bd4b3625
+  languageName: node
+  linkType: hard
+
 "libphonenumber-js@npm:^1.9.7":
   version: 1.9.9
   resolution: "libphonenumber-js@npm:1.9.9"
@@ -15620,6 +15676,13 @@ typescript@^4.4.4:
   version: 13.6.0
   resolution: "validator@npm:13.6.0"
   checksum: 1f9f813228a709d993b965813ad9d8ce009717bec64f57a0ac40d5f50ef781ee47260f85741e125775823fb31aa3beb7f974e0f5fb1afe9bc4615b7fadd7f8bb
+  languageName: node
+  linkType: hard
+
+"validator@npm:^13.7.0":
+  version: 13.7.0
+  resolution: "validator@npm:13.7.0"
+  checksum: 2b83283de1222ca549a7ef57f46e8d49c6669213348db78b7045bce36a3b5843ff1e9f709ebf74574e06223461ee1f264f8cc9a26a0060a79a27de079d8286ef
   languageName: node
   linkType: hard
 
